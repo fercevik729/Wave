@@ -129,7 +129,6 @@ func (r request) String() string {
 
 func readJsonFile(filepath string) *bytes.Buffer {
 	jsonFile, err := os.Open(filepath)
-
 	if err != nil {
 		log.Fatalf("Couldn't open json file at %s\n", filepath)
 		return nil
