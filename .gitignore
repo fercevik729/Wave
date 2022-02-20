@@ -1,4 +1,4 @@
 *.json
 *.exe
-.idea
+/.idea
 main
