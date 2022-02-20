@@ -113,6 +113,7 @@ func runRequests(its int, reqs []request, verbose bool) {
 
 // TODO: Whirlpool function to test requests cyclically
 // TODO: Configure for API authentication
+
 func (r request) String() string {
 	return fmt.Sprintf("Request type: %s, endpoint: %s", r.reqType, r.endpoint)
 }
