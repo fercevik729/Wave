@@ -19,7 +19,7 @@ func main() {
 	// Get command line variables
 	iters := flag.Int("iters", 10, "Number of iterations for the set of HTTP requests")
 	reqs := flag.String("reqs", "./requests/http.txt", "Source for HTTP requests")
-	verbose := flag.Bool("verbose", false, "Option to display response bodies and number of successful"+
+	verbose := flag.Bool("v", false, "Option to display response bodies and number of successful"+
 		"requests ")
 	flag.Parse()
 
@@ -72,9 +72,10 @@ func runRequests(its int, reqs []request, verbose bool) {
 	fmt.Printf("Running %d request(s) for %d sets:\n", len(reqs), its)
 	start := time.Now()
 	successes := safeCounter{}
+	client := &http.Client{}
 	var wg sync.WaitGroup
-	for i := 0; i < its; i++ {
 
+	for i := 0; i < its; i++ {
 		wg.Add(1)
 		go func() {
 			if verbose {
@@ -83,46 +84,35 @@ func runRequests(its int, reqs []request, verbose bool) {
 			}
 			defer wg.Done()
 			for _, req := range reqs {
-
-				switch req.reqType {
-				case "GET":
-					resp, err := http.Get(req.endpoint)
-					if err != nil {
-						log.Printf("%s timed out\n", req)
-					} else {
-						code := resp.StatusCode
-						log.Printf("Status code %d for %s\n", code, req)
-						if code == 200 && verbose {
-							successes.counter++
-							body, _ := ioutil.ReadAll(resp.Body)
-							log.Println(string(body))
-						}
-					}
-				case "POST":
-					resp, err := http.Post(req.endpoint, "application/json", &req.body)
-					if err != nil {
-						log.Printf("%s timed out\n", req)
-					} else {
-						code := resp.StatusCode
-						log.Printf("Status code %d for %s\n", code, req)
-						if code == 200 && verbose {
-							successes.counter++
-							body, _ := ioutil.ReadAll(resp.Body)
-							log.Println(string(body))
-						}
-					}
-				default:
-					log.Printf("Invalid request: %s\n", req)
+				r, err := http.NewRequest(req.reqType, req.endpoint, &req.body)
+				if err != nil {
+					log.Fatalf("Couldn't construct %s\n", req)
 				}
+				r.Header.Set("contentType", "application/json")
+				resp, err := client.Do(r)
+				if err != nil {
+					log.Fatalf("%s timed out\n", req)
+				}
+				code := resp.StatusCode
+				log.Printf("Status code %d for %s\n", code, req)
+				if code == 200 && verbose {
+					body, _ := ioutil.ReadAll(resp.Body)
+					successes.counter++
+					log.Println(string(body))
+				}
+
 			}
 		}()
 	}
 	wg.Wait()
 	log.Printf("Time to execute: %s\n", time.Since(start))
 	if verbose {
-		log.Printf("%d/%d successful requests\n", successes.counter, len(reqs)*its)
+		log.Printf("%d out of %d successful requests\n", successes.counter, len(reqs)*its)
 	}
 }
+
+// TODO: Whirlpool function to test requests cyclically
+// TODO: Configure for API authentication
 func (r request) String() string {
 	return fmt.Sprintf("Request type: %s, endpoint: %s", r.reqType, r.endpoint)
 }
