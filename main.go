@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -14,22 +15,33 @@ import (
 	"time"
 )
 
+var username string
+var password string
+var apiToken string
+
 func main() {
 
-	// Get command line variables
+	// Get command line arguments
 	iters := flag.Int("iters", 10, "Number of iterations for the set of HTTP requests")
 	reqs := flag.String("reqs", "./requests/http.txt", "Source for HTTP requests")
 	verbose := flag.Bool("v", false, "Option to display response bodies and number of successful"+
 		"requests ")
+	user := flag.String("user", "", "API username")
+	pass := flag.String("pass", "", "API password")
+	token := flag.String("token", "", "API token")
+	whirl := flag.Bool("whirl", false, "Option to cyclically perform requests")
+
 	flag.Parse()
 
-	runWave(*iters, *reqs, *verbose)
+	username = *user
+	password = *pass
+	apiToken = "Bearer" + *token
+	runWave(*iters, *reqs, *verbose, *whirl)
 
-	fmt.Println("")
 }
 
 // runWave runs all the specified http requests in the inFile
-func runWave(iterations int, inFile string, verbose bool) {
+func runWave(iterations int, inFile string, verbose bool, whirl bool) {
 
 	// Gather all the requests and request data
 	f, err := os.Open(inFile)
@@ -44,6 +56,7 @@ func runWave(iterations int, inFile string, verbose bool) {
 		}
 	}(f)
 
+	// Create slice of request structs
 	var requests []request
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -56,18 +69,24 @@ func runWave(iterations int, inFile string, verbose bool) {
 		if len(text) == 3 {
 			r.body = *readJsonFile(text[2])
 		}
+		if len(text) == 4 && text[3] == "AUTH" {
+			r.isAuth = true
+		}
 
 		requests = append(requests, r)
 	}
-
-	runRequests(iterations, requests, verbose)
+	if whirl {
+		whirlpool(iterations, requests, verbose)
+	} else {
+		splash(iterations, requests, verbose)
+	}
 
 }
 
-/* runRequests runs the specified requests concurrently with the option to count how many requests had a status code of
-200, though at a slower speed
+/* splash runs the specified requests concurrently with the option to count how many requests had a status code of
+200, though at a slower speed. splash does
 */
-func runRequests(its int, reqs []request, verbose bool) {
+func splash(its int, reqs []request, verbose bool) {
 
 	fmt.Printf("Running %d request(s) for %d sets:\n", len(reqs), its)
 	start := time.Now()
@@ -88,17 +107,40 @@ func runRequests(its int, reqs []request, verbose bool) {
 				if err != nil {
 					log.Fatalf("Couldn't construct %s\n", req)
 				}
+				// Set other parameters besides the request body
 				r.Header.Set("contentType", "application/json")
+				r.Header.Set("Authorization", apiToken)
+				// If the method is a POST method that gets an API token set the username and password fields
+				if req.reqType == "POST" && req.isAuth {
+					r.SetBasicAuth(username, password)
+				}
 				resp, err := client.Do(r)
 				if err != nil {
 					log.Fatalf("%s timed out\n", req)
 				}
 				code := resp.StatusCode
 				log.Printf("Status code %d for %s\n", code, req)
-				if code == 200 && verbose {
+
+				// Get the API token from the POST response body
+				if req.reqType == "POST" && req.isAuth {
+					var tokenMap map[string]string
 					body, _ := ioutil.ReadAll(resp.Body)
+					err := json.Unmarshal(body, &tokenMap)
+					if err != nil {
+						log.Fatal(err)
+					}
+					apiToken = "Bearer " + tokenMap["token"]
+				}
+				// If the status code is 200 and verbose flag is enabled increment successes and output the json
+				if code == 200 && verbose {
+					var formattedJSON bytes.Buffer
+					body, _ := ioutil.ReadAll(resp.Body)
+					err := json.Indent(&formattedJSON, body, "", "    ")
+					if err != nil {
+						log.Fatalf("Error printing response body for %s\n", req)
+					}
 					successes.counter++
-					log.Println(string(body))
+					log.Println(formattedJSON.String())
 				}
 
 			}
@@ -111,8 +153,68 @@ func runRequests(its int, reqs []request, verbose bool) {
 	}
 }
 
-// TODO: Whirlpool function to test requests cyclically
-// TODO: Configure for API authentication
+// whirlpool runs the specified requests cyclically for specified number of iterations
+func whirlpool(its int, reqs []request, verbose bool) {
+
+	fmt.Printf("Running %d request(s) for %d sets:\n", len(reqs), its)
+	absStart := time.Now()
+	client := &http.Client{}
+	successes := 0
+
+	for i := 0; i < its; i++ {
+
+		for _, req := range reqs {
+
+			r, err := http.NewRequest(req.reqType, req.endpoint, &req.body)
+			if err != nil {
+				log.Fatalf("Couldn't construct %s\n", req)
+			}
+			// Set other parameters besides the request body
+			r.Header.Set("contentType", "application/json")
+			r.Header.Set("Authorization", apiToken)
+			// If the method is a POST method that gets an API token set the username and password fields
+			if req.reqType == "POST" && req.isAuth {
+				r.SetBasicAuth(username, password)
+			}
+			reqStart := time.Now()
+			resp, err := client.Do(r)
+			if err != nil {
+				log.Fatalf("%s timed out\n", req)
+			}
+			code := resp.StatusCode
+			log.Printf("Status code %d for %s\n", code, req)
+			log.Printf("Request took %s to process\n", time.Since(reqStart))
+
+			// Get the API token from the POST response body
+			if req.reqType == "POST" && req.isAuth {
+				var tokenMap map[string]string
+				body, _ := ioutil.ReadAll(resp.Body)
+				err := json.Unmarshal(body, &tokenMap)
+				if err != nil {
+					log.Fatal(err)
+				}
+				apiToken = "Bearer " + tokenMap["token"]
+			}
+			// If the status code is 200 and verbose flag is enabled increment successes and output the json
+			if code == 200 && verbose {
+				var formattedJSON bytes.Buffer
+				body, _ := ioutil.ReadAll(resp.Body)
+				err := json.Indent(&formattedJSON, body, "", "    ")
+				if err != nil {
+					log.Fatalf("Error printing response body for %s\n", req)
+				}
+				successes++
+				log.Println(formattedJSON.String())
+			}
+		}
+		log.Printf("Time to execute: %s\n", time.Since(absStart))
+		if verbose {
+			log.Printf("%d out of %d successful requests\n", successes, len(reqs)*its)
+		}
+
+	}
+
+}
 
 func (r request) String() string {
 	return fmt.Sprintf("Request type: %s, endpoint: %s", r.reqType, r.endpoint)
@@ -140,6 +242,7 @@ type request struct {
 	reqType  string
 	endpoint string
 	body     bytes.Buffer
+	isAuth   bool
 }
 
 type safeCounter struct {
