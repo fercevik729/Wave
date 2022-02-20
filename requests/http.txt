@@ -1,2 +1,1 @@
-POST https://reqbin.com/sample/post/json ./data/post.json
-GET https://api.sampleapis.com/switch/games
+POST http://restapi.adequateshop.com/api/authaccount/registration AUTH

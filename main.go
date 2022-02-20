@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// API credentials
 var username string
 var password string
 var apiToken string
@@ -66,10 +67,9 @@ func runWave(iterations int, inFile string, verbose bool, whirl bool) {
 			reqType:  text[0],
 			endpoint: text[1],
 		}
-		if len(text) == 3 {
+		if len(text) == 3 && text[2] != "AUTH" {
 			r.body = *readJsonFile(text[2])
-		}
-		if len(text) == 4 && text[3] == "AUTH" {
+		} else if len(text) == 3 && text[2] == "AUTH" {
 			r.isAuth = true
 		}
 
@@ -108,7 +108,7 @@ func splash(its int, reqs []request, verbose bool) {
 					log.Fatalf("Couldn't construct %s\n", req)
 				}
 				// Set other parameters besides the request body
-				r.Header.Set("contentType", "application/json")
+				r.Header.Set("content-Type", "application/json")
 				r.Header.Set("Authorization", apiToken)
 				// If the method is a POST method that gets an API token set the username and password fields
 				if req.reqType == "POST" && req.isAuth {
@@ -140,14 +140,14 @@ func splash(its int, reqs []request, verbose bool) {
 						log.Fatalf("Error printing response body for %s\n", req)
 					}
 					successes.counter++
-					log.Println(formattedJSON.String())
+					log.Printf("Response body: %s\n", formattedJSON.String())
 				}
 
 			}
 		}()
 	}
 	wg.Wait()
-	log.Printf("Time to execute: %s\n", time.Since(start))
+	log.Printf("Total execution time: %s\n", time.Since(start))
 	if verbose {
 		log.Printf("%d out of %d successful requests\n", successes.counter, len(reqs)*its)
 	}
@@ -170,7 +170,7 @@ func whirlpool(its int, reqs []request, verbose bool) {
 				log.Fatalf("Couldn't construct %s\n", req)
 			}
 			// Set other parameters besides the request body
-			r.Header.Set("contentType", "application/json")
+			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Authorization", apiToken)
 			// If the method is a POST method that gets an API token set the username and password fields
 			if req.reqType == "POST" && req.isAuth {
@@ -204,20 +204,20 @@ func whirlpool(its int, reqs []request, verbose bool) {
 					log.Fatalf("Error printing response body for %s\n", req)
 				}
 				successes++
-				log.Println(formattedJSON.String())
+				log.Printf("Response body: %s\n", formattedJSON.String())
 			}
+			fmt.Println()
 		}
-		log.Printf("Time to execute: %s\n", time.Since(absStart))
-		if verbose {
-			log.Printf("%d out of %d successful requests\n", successes, len(reqs)*its)
-		}
-
 	}
 
+	log.Printf("Total execution time: %s\n", time.Since(absStart))
+	if verbose {
+		log.Printf("%d out of %d successful requests\n", successes, len(reqs)*its)
+	}
 }
 
 func (r request) String() string {
-	return fmt.Sprintf("Request type: %s, endpoint: %s", r.reqType, r.endpoint)
+	return fmt.Sprintf("request type: %s, endpoint: %s", r.reqType, r.endpoint)
 }
 
 func readJsonFile(filepath string) *bytes.Buffer {
