@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/GoWave.iml" filepath="$PROJECT_DIR$/.idea/GoWave.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Wave.iml" filepath="$PROJECT_DIR$/.idea/Wave.iml" />
     </modules>
   </component>
 </project>

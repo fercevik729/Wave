@@ -1,1 +1,3 @@
-POST http://restapi.adequateshop.com/api/authaccount/registration AUTH
+GET http://dummy.restapiexample.com/api/v1/employees
+GET http://dummy.restapiexample.com/api/v1/employee/1
+POST http://dummy.restapiexample.com/api/v1/create ./data/post.json
