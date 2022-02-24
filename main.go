@@ -20,17 +20,18 @@ var username string
 var password string
 var apiToken string
 
+// TODO: migrate to cobra for a full cli application
 func main() {
 
 	// Get command line arguments
-	iters := flag.Int("iters", 10, "Number of iterations for the set of HTTP requests")
+	iters := flag.Int("n", 10, "Number of iterations for the set of HTTP requests")
 	reqs := flag.String("reqs", "./requests/http.txt", "Source for HTTP requests")
 	verbose := flag.Bool("v", false, "Option to display response bodies and number of successful"+
 		"requests ")
-	user := flag.String("user", "", "API username")
-	pass := flag.String("pass", "", "API password")
-	token := flag.String("token", "", "API token")
-	whirl := flag.Bool("whirl", false, "Option to cyclically perform requests")
+	user := flag.String("u", "", "API username")
+	pass := flag.String("p", "", "API password")
+	token := flag.String("t", "", "API token")
+	whirl := flag.Bool("w", false, "Option to cyclically perform requests")
 
 	flag.Parse()
 
@@ -153,7 +154,7 @@ func splash(its int, reqs []request, verbose bool) {
 	}
 }
 
-// whirlpool runs the specified requests cyclically for specified number of iterations
+// whirlpool runs the specified requests cyclically for a specified number of iterations
 func whirlpool(its int, reqs []request, verbose bool) {
 
 	fmt.Printf("Running %d request(s) for %d sets:\n", len(reqs), its)
