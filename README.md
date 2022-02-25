@@ -1,13 +1,13 @@
-# GoWave
+# Wave
 
-GoWave is a Golang library for load-testing RESTful APIs.
+Wave is a command line application built using the Cobra CLI framework to load-test RESTful APIs.
 
 ## Installation
 
 Download the library as a .zip file and execute the following command
 
 ```bash
-go build main.go
+go install Wave
 ```
 
 ## Usage
@@ -33,4 +33,6 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## License
-TODO
+© Furkan T. Ercevik
+
+This repository is licensed with a [GNU GPLv3](LICENSE) license.
