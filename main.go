@@ -1,8 +1,6 @@
 package main
 
-import (
-	"Wave/cmd"
-)
+import "Wave/cmd"
 
 func main() {
 	cmd.Execute()

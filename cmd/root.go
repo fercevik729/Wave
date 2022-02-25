@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// TODO: fix viper so it binds cfgFile values to rootCmd flags
 var cfgFile string
 var verbose bool
 var requestsFile string
@@ -27,7 +26,6 @@ from the shell interface. It provides an option to concurrently load test your A
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(cmd.PersistentFlags().Lookup("requestsFile").Value)
 		fmt.Println("Welcome to wave")
 	},
 }
@@ -50,8 +48,8 @@ func init() {
 
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "wave.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "option to enable more detailed output")
-	rootCmd.PersistentFlags().StringVarP(&requestsFile, "requests", "r", "../requests/http.txt", "file containing the HTTP requests")
-	rootCmd.PersistentFlags().StringVarP(&credentialsFile, "credentials", "c", "../data/cred.yaml", "yaml file containing credentials")
+	rootCmd.PersistentFlags().StringVarP(&requestsFile, "requests", "r", "./requests/http.txt", "file containing the HTTP requests")
+	rootCmd.PersistentFlags().StringVarP(&credentialsFile, "credentials", "c", "./data/cred.yaml", "yaml file containing credentials")
 	// err := viper.BindPFlag("requests", rootCmd.PersistentFlags().Lookup("token"))
 	// err = viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
 	// viper.SetDefault("requestsFile", "../requests/http.txt")

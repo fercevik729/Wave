@@ -6,7 +6,6 @@ package cmd
 import (
 	"Wave/helpers"
 	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +17,6 @@ var splashCmd = &cobra.Command{
 	Short: "Concurrently runs HTTP requests from the specified file",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("splash called")
-
 		requests, creds := helpers.New(requestsFile, credentialsFile)
 		helpers.Splash(iterations, requests, verbose, creds)
 	},
