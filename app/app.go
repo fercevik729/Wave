@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,36 +15,10 @@ import (
 	"time"
 )
 
-// API credentials
-var username string
-var password string
-var apiToken string
+// New creates new Request structs
+func New(inFile string, authFile string) ([]Request, KeyChain) {
 
-func main() {
-
-	// Get command line arguments
-	iters := flag.Int("n", 10, "Number of iterations for the set of HTTP requests")
-	reqs := flag.String("reqs", "./requests/http.txt", "Source for HTTP requests")
-	verbose := flag.Bool("v", false, "Option to display response bodies and number of successful"+
-		"requests ")
-	user := flag.String("u", "", "API username")
-	pass := flag.String("p", "", "API password")
-	token := flag.String("t", "", "API token")
-	whirl := flag.Bool("w", false, "Option to cyclically perform requests")
-
-	flag.Parse()
-
-	username = *user
-	password = *pass
-	apiToken = "Bearer" + *token
-	runWave(*iters, *reqs, *verbose, *whirl)
-
-}
-
-// runWave runs all the specified http requests in the inFile
-func runWave(iterations int, inFile string, verbose bool, whirl bool) {
-
-	// Gather all the requests and request data
+	// Gather all the requests and Request data
 	f, err := os.Open(inFile)
 	if err != nil {
 		log.Fatal(err)
@@ -57,38 +31,31 @@ func runWave(iterations int, inFile string, verbose bool, whirl bool) {
 		}
 	}(f)
 
-	// Create slice of request structs
-	var requests []request
+	// Create slice of Request structs
+	var requests []Request
+	credentials := readCredentials(authFile)
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		text := strings.Split(scanner.Text(), " ")
 
-		r := request{
+		r := Request{
 			reqType:  text[0],
 			endpoint: text[1],
 		}
-		if len(text) == 3 && text[2] != "AUTH" {
+		if len(text) == 3 {
 			r.body = *readJsonFile(text[2])
-		} else if len(text) == 3 && text[2] == "AUTH" {
-			r.isAuth = true
 		}
 
 		requests = append(requests, r)
 	}
-	if whirl {
-		whirlpool(iterations, requests, verbose)
-	} else {
-		splash(iterations, requests, verbose)
-	}
 
+	return requests, credentials
 }
 
-/* splash runs the specified requests concurrently with the option to count how many requests had a status code of
-200, though at a slower speed. splash does
-*/
-func splash(its int, reqs []request, verbose bool) {
+// Splash runs the specified requests concurrently with the option to count how many requests had a status code of
+func Splash(its int, reqs []Request, verbose bool, chain KeyChain) {
 
-	fmt.Printf("Running %d request(s) for %d sets:\n", len(reqs), its)
+	fmt.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
 	start := time.Now()
 	successes := safeCounter{}
 	client := &http.Client{}
@@ -107,13 +74,10 @@ func splash(its int, reqs []request, verbose bool) {
 				if err != nil {
 					log.Fatalf("Couldn't construct %s\n", req)
 				}
-				// Set other parameters besides the request body
+				// Set other parameters besides the Request body
 				r.Header.Set("content-Type", "application/json")
-				r.Header.Set("Authorization", apiToken)
+				r.Header.Set("Authorization", chain.token)
 				// If the method is a POST method that gets an API token set the username and password fields
-				if req.reqType == "POST" && req.isAuth {
-					r.SetBasicAuth(username, password)
-				}
 				resp, err := client.Do(r)
 				if err != nil {
 					log.Fatalf("%s timed out\n", req)
@@ -121,16 +85,6 @@ func splash(its int, reqs []request, verbose bool) {
 				code := resp.StatusCode
 				log.Printf("Status code %d for %s\n", code, req)
 
-				// Get the API token from the POST response body
-				if req.reqType == "POST" && req.isAuth {
-					var tokenMap map[string]string
-					body, _ := ioutil.ReadAll(resp.Body)
-					err := json.Unmarshal(body, &tokenMap)
-					if err != nil {
-						log.Fatal(err)
-					}
-					apiToken = "Bearer " + tokenMap["token"]
-				}
 				// If the status code is 200 and verbose flag is enabled increment successes and output the json
 				if code == 200 && verbose {
 					var formattedJSON bytes.Buffer
@@ -153,10 +107,9 @@ func splash(its int, reqs []request, verbose bool) {
 	}
 }
 
-// whirlpool runs the specified requests cyclically for a specified number of iterations
-func whirlpool(its int, reqs []request, verbose bool) {
-
-	fmt.Printf("Running %d request(s) for %d sets:\n", len(reqs), its)
+// Whirlpool runs the specified requests cyclically for a specified number of iterations
+func Whirlpool(its int, reqs []Request, verbose bool, chain KeyChain) {
+	fmt.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
 	absStart := time.Now()
 	client := &http.Client{}
 	successes := 0
@@ -169,12 +122,12 @@ func whirlpool(its int, reqs []request, verbose bool) {
 			if err != nil {
 				log.Fatalf("Couldn't construct %s\n", req)
 			}
-			// Set other parameters besides the request body
+			// Set other parameters besides the Request body
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("Authorization", apiToken)
+			r.Header.Set("Authorization", chain.token)
 			// If the method is a POST method that gets an API token set the username and password fields
 			if req.reqType == "POST" && req.isAuth {
-				r.SetBasicAuth(username, password)
+				r.SetBasicAuth(chain.user, chain.pass)
 			}
 			reqStart := time.Now()
 			resp, err := client.Do(r)
@@ -193,7 +146,7 @@ func whirlpool(its int, reqs []request, verbose bool) {
 				if err != nil {
 					log.Fatal(err)
 				}
-				apiToken = "Bearer " + tokenMap["token"]
+				chain.token = "Bearer " + tokenMap["token"]
 			}
 			// If the status code is 200 and verbose flag is enabled increment successes and output the json
 			if code == 200 && verbose {
@@ -216,8 +169,8 @@ func whirlpool(its int, reqs []request, verbose bool) {
 	}
 }
 
-func (r request) String() string {
-	return fmt.Sprintf("request type: %s, endpoint: %s", r.reqType, r.endpoint)
+func (r Request) String() string {
+	return fmt.Sprintf("Request type: %s, endpoint: %s", r.reqType, r.endpoint)
 }
 
 func readJsonFile(filepath string) *bytes.Buffer {
@@ -238,7 +191,32 @@ func readJsonFile(filepath string) *bytes.Buffer {
 	return bytes.NewBuffer(byteValue)
 }
 
-type request struct {
+// readCredentials returns a KeyChain struct from a yaml file
+func readCredentials(filepath string) KeyChain {
+
+	yamlFile, err := os.Open(filepath)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	defer func(yamlFile *os.File) {
+		err := yamlFile.Close()
+		if err != nil {
+			log.Fatalf("Couldn't close yaml file at %s", filepath)
+		}
+	}(yamlFile)
+
+	data, _ := ioutil.ReadAll(yamlFile)
+	keys := KeyChain{}
+	err = yaml.Unmarshal(data, &keys)
+
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
+	return keys
+}
+
+type Request struct {
 	reqType  string
 	endpoint string
 	body     bytes.Buffer
@@ -248,4 +226,10 @@ type request struct {
 type safeCounter struct {
 	sync.Mutex
 	counter int
+}
+
+type KeyChain struct {
+	user  string `yaml:"user"`
+	pass  string `yaml:"pass"`
+	token string `yaml:"token"`
 }
