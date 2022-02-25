@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"bufio"
@@ -20,7 +20,6 @@ var username string
 var password string
 var apiToken string
 
-// TODO: migrate to cobra for a full cli application
 func main() {
 
 	// Get command line arguments
