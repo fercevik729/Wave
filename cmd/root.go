@@ -16,6 +16,7 @@ var cfgFile string
 var verbose bool
 var requestsFile string
 var credentialsFile string
+var iterations int
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -23,8 +24,6 @@ var rootCmd = &cobra.Command{
 	Short: "Wave is an automated RESTful API tester",
 	Long: `Wave is a command line application that provides multiple options to automatically test your RESTful API 
 from the shell interface. It provides an option to concurrently load test your API as well as an option to cyclically test your API.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Welcome to wave")
 	},
@@ -50,6 +49,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "option to enable more detailed output")
 	rootCmd.PersistentFlags().StringVarP(&requestsFile, "requests", "r", "./requests/http.txt", "file containing the HTTP requests")
 	rootCmd.PersistentFlags().StringVarP(&credentialsFile, "credentials", "c", "./data/cred.yaml", "yaml file containing credentials")
+	rootCmd.PersistentFlags().IntVarP(&iterations, "iterations", "i", 10, "describes how many sets of requests to run")
 	// err := viper.BindPFlag("requests", rootCmd.PersistentFlags().Lookup("token"))
 	// err = viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
 	// viper.SetDefault("requestsFile", "../requests/http.txt")

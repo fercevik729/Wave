@@ -4,21 +4,19 @@ Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
 package cmd
 
 import (
-	"Wave/helpers"
-	"fmt"
+	"Wave/driver"
 	"github.com/spf13/cobra"
+	"log"
 )
-
-var iterations int
 
 // splashCmd represents the wave command
 var splashCmd = &cobra.Command{
 	Use:   "splash",
 	Short: "Concurrently runs HTTP requests from the specified file",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("splash called")
-		requests, creds := helpers.New(requestsFile, credentialsFile)
-		helpers.Splash(iterations, requests, verbose, creds)
+		requests, keychain := driver.New(requestsFile, credentialsFile)
+		log.Printf("Your credentials are %s\n", keychain)
+		driver.Splash(iterations, requests, verbose, keychain)
 	},
 }
 
@@ -30,5 +28,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// splashCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	splashCmd.Flags().IntVarP(&iterations, "iterations", "i", 10, "describes how many sets of requests to run")
 }

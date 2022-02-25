@@ -1,4 +1,4 @@
-package helpers
+package driver
 
 import (
 	"bufio"
@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 )
+
+// TODO: fix unmarshaling credentials into Keychain struct
 
 // New creates new Request structs
 func New(inFile string, authFile string) ([]Request, KeyChain) {
@@ -37,7 +39,7 @@ func New(inFile string, authFile string) ([]Request, KeyChain) {
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		text := strings.Split(scanner.Text(), " ")
-
+		// Creates the Request struct
 		r := Request{
 			reqType:  text[0],
 			endpoint: text[1],
@@ -175,6 +177,7 @@ func (r Request) String() string {
 	return fmt.Sprintf("Request type: %s, endpoint: %s", r.reqType, r.endpoint)
 }
 
+// readJsonFile reads in JSON files for CUD requests
 func readJsonFile(filepath string) *bytes.Buffer {
 	jsonFile, err := os.Open(filepath)
 	if err != nil {
@@ -234,4 +237,8 @@ type KeyChain struct {
 	user  string `yaml:"user"`
 	pass  string `yaml:"pass"`
 	token string `yaml:"token"`
+}
+
+func (c *KeyChain) String() string {
+	return fmt.Sprintf("Your username: %s, Your password: %s, Your token: %s", c.user, c.pass, c.token)
 }
