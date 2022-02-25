@@ -1,4 +1,4 @@
-package app
+package helpers
 
 import (
 	"bufio"
@@ -42,8 +42,10 @@ func New(inFile string, authFile string) ([]Request, KeyChain) {
 			reqType:  text[0],
 			endpoint: text[1],
 		}
-		if len(text) == 3 {
+		if len(text) == 3 && text[2] != "AUTH" {
 			r.body = *readJsonFile(text[2])
+		} else if len(text) == 3 && text[2] == "AUTH" {
+			r.isAuth = true
 		}
 
 		requests = append(requests, r)
