@@ -1,3 +1,6 @@
+/*
+Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
+*/
 package driver
 
 import (
@@ -35,7 +38,7 @@ func New(inFile string, authFile string) ([]Request, KeyChain) {
 
 	// Create slice of Request structs
 	var requests []Request
-	credentials := readCredentials(authFile)
+	credentials := ReadCredentials(authFile)
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		text := strings.Split(scanner.Text(), " ")
@@ -80,7 +83,7 @@ func Splash(its int, reqs []Request, verbose bool, chain KeyChain) {
 				}
 				// Set other parameters besides the Request body
 				r.Header.Set("content-Type", "application/json")
-				r.Header.Set("Authorization", chain.token)
+				r.Header.Set("Authorization", chain.Token)
 				// If the method is a POST method that gets an API token set the username and password fields
 				resp, err := client.Do(r)
 				if err != nil {
@@ -128,10 +131,10 @@ func Whirlpool(its int, reqs []Request, verbose bool, chain KeyChain) {
 			}
 			// Set other parameters besides the Request body
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("Authorization", chain.token)
+			r.Header.Set("Authorization", chain.Token)
 			// If the method is a POST method that gets an API token set the username and password fields
 			if req.reqType == "POST" && req.isAuth {
-				r.SetBasicAuth(chain.user, chain.pass)
+				r.SetBasicAuth(chain.User, chain.Pass)
 			}
 			reqStart := time.Now()
 			resp, err := client.Do(r)
@@ -150,7 +153,7 @@ func Whirlpool(its int, reqs []Request, verbose bool, chain KeyChain) {
 				if err != nil {
 					log.Fatal(err)
 				}
-				chain.token = "Bearer " + tokenMap["token"]
+				chain.Token = "Bearer " + tokenMap["token"]
 			}
 			// If the status code is 200 and verbose flag is enabled increment successes and output the json
 			if code == 200 && verbose {
@@ -197,7 +200,7 @@ func readJsonFile(filepath string) *bytes.Buffer {
 }
 
 // readCredentials returns a KeyChain struct from a yaml file
-func readCredentials(filepath string) KeyChain {
+func ReadCredentials(filepath string) KeyChain {
 
 	yamlFile, err := os.Open(filepath)
 	if err != nil {
@@ -234,11 +237,11 @@ type safeCounter struct {
 }
 
 type KeyChain struct {
-	user  string `yaml:"user"`
-	pass  string `yaml:"pass"`
-	token string `yaml:"token"`
+	User  string `yaml:"user"`
+	Pass  string `yaml:"pass"`
+	Token string `yaml:"token"`
 }
 
 func (c *KeyChain) String() string {
-	return fmt.Sprintf("Your username: %s, Your password: %s, Your token: %s", c.user, c.pass, c.token)
+	return fmt.Sprintf("Your username: %s, Your password: %s, Your token: %s", c.User, c.Pass, c.Token)
 }

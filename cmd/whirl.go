@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
 
 */
 package cmd
@@ -13,7 +13,7 @@ import (
 // whirlCmd represents the whirl command
 var whirlCmd = &cobra.Command{
 	Use:   "whirl",
-	Short: "whirl sequentially runs the user-specified commands in a cycle",
+	Short: "Sequentially runs the HTTP requests from the specified file for i cycles",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("whirl called")
 		requests, keychain := driver.New(requestsFile, credentialsFile)
