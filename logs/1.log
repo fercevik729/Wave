@@ -1,0 +1,12 @@
+2022/02/26 12:58:35 Running 1 Request(s) for 10 sets:
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Status code 200 for Request type: GET, endpoint: https://api.sampleapis.com/coffee/hot
+2022/02/26 12:58:36 Total execution time: 321.4685ms

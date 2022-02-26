@@ -18,8 +18,6 @@ import (
 	"time"
 )
 
-// TODO: fix unmarshaling credentials into Keychain struct
-
 // New creates new Request structs
 func New(inFile string, authFile string) ([]Request, KeyChain) {
 
@@ -60,9 +58,25 @@ func New(inFile string, authFile string) ([]Request, KeyChain) {
 }
 
 // Splash runs the specified requests concurrently with the option to count how many requests had a status code of
-func Splash(its int, reqs []Request, verbose bool, chain KeyChain) {
+func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) {
 
-	fmt.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
+	// If a destination log file is specified set it as the output otherwise stick with stdout
+	if dest != "" {
+		outFile, err := os.OpenFile("./logs/"+dest, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
+		if err != nil {
+			log.Fatalf("Couldn't open output file %s", dest)
+		}
+		defer func(outFile *os.File) {
+			err := outFile.Close()
+			if err != nil {
+				log.Fatalf("Couldn't close the file %s", dest)
+			}
+		}(outFile)
+
+		log.SetOutput(outFile)
+	}
+
+	log.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
 	start := time.Now()
 	successes := safeCounter{}
 	client := &http.Client{}
@@ -115,8 +129,24 @@ func Splash(its int, reqs []Request, verbose bool, chain KeyChain) {
 }
 
 // Whirlpool runs the specified requests cyclically for a specified number of iterations
-func Whirlpool(its int, reqs []Request, verbose bool, chain KeyChain) {
-	fmt.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
+func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChain) {
+
+	// If a destination log file is specified set it as the output otherwise stick with stdout
+	if dest != "" {
+		outFile, err := os.OpenFile("./logs/"+dest, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
+		if err != nil {
+			log.Fatalf("Couldn't open output file %s", dest)
+		}
+		defer func(outFile *os.File) {
+			err := outFile.Close()
+			if err != nil {
+				log.Fatalf("Couldn't close the file %s", dest)
+			}
+		}(outFile)
+
+		log.SetOutput(outFile)
+	}
+	log.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
 	absStart := time.Now()
 	client := &http.Client{}
 	successes := 0
@@ -199,7 +229,7 @@ func readJsonFile(filepath string) *bytes.Buffer {
 	return bytes.NewBuffer(byteValue)
 }
 
-// readCredentials returns a KeyChain struct from a yaml file
+// ReadCredentials returns a KeyChain struct from a yaml file
 func ReadCredentials(filepath string) KeyChain {
 
 	yamlFile, err := os.Open(filepath)

@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
-
 */
 package cmd
 
@@ -12,11 +11,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
-var verbose bool
-var requestsFile string
-var credentialsFile string
-var iterations int
+var (
+	cfgFile         string
+	requestsFile    string
+	credentialsFile string
+	logFile         string
+	iterations      int
+	verbose         bool
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -48,6 +50,7 @@ func init() {
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "wave.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "option to enable more detailed output")
 	rootCmd.PersistentFlags().StringVarP(&requestsFile, "requests", "r", "./requests/http.txt", "file containing the HTTP requests")
+	rootCmd.PersistentFlags().StringVarP(&logFile, "output", "o", "", "file to write output to")
 	rootCmd.PersistentFlags().StringVarP(&credentialsFile, "credentials", "c", "./data/cred.yaml", "yaml file containing credentials")
 	rootCmd.PersistentFlags().IntVarP(&iterations, "iterations", "i", 10, "describes how many sets of requests to run")
 	// err := viper.BindPFlag("requests", rootCmd.PersistentFlags().Lookup("token"))

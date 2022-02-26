@@ -5,8 +5,8 @@ package cmd
 
 import (
 	"Wave/driver"
+	"fmt"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 // splashCmd represents the wave command
@@ -14,9 +14,10 @@ var splashCmd = &cobra.Command{
 	Use:   "splash",
 	Short: "Concurrently runs HTTP requests from the specified file for i sets",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Starting splash...")
 		requests, keychain := driver.New(requestsFile, credentialsFile)
-		log.Printf("Your credentials are %s\n", keychain)
-		driver.Splash(iterations, requests, verbose, keychain)
+		driver.Splash(iterations, requests, verbose, logFile, keychain)
+		fmt.Println("Process completed")
 	},
 }
 

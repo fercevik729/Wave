@@ -15,9 +15,10 @@ var whirlCmd = &cobra.Command{
 	Use:   "whirl",
 	Short: "Sequentially runs the HTTP requests from the specified file for i cycles",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("whirl called")
+		fmt.Println("Starting whirl...")
 		requests, keychain := driver.New(requestsFile, credentialsFile)
-		driver.Whirlpool(iterations, requests, verbose, keychain)
+		driver.Whirlpool(iterations, requests, verbose, logFile, keychain)
+		fmt.Println("Process completed")
 	},
 }
 
