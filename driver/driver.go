@@ -1,5 +1,6 @@
 /*
 Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
+
 */
 package driver
 
@@ -8,6 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,8 +17,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"gopkg.in/yaml.v2"
 )
 
 // New creates new Request structs
@@ -59,7 +59,7 @@ func New(inFile string, authFile string) ([]Request, KeyChain) {
 }
 
 // Splash runs the specified requests concurrently with the option to count how many requests had a status code of
-func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) {
+func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	if dest != "" {
@@ -108,7 +108,7 @@ func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) 
 				log.Printf("Status code %d for %s\n", code, req)
 
 				// If the status code is 200 and verbose flag is enabled increment successes and output the json
-				if code == 200 && verbose {
+				if code >= 200 && code < 300 && verbose {
 					var formattedJSON bytes.Buffer
 					body, _ := ioutil.ReadAll(resp.Body)
 					err := json.Indent(&formattedJSON, body, "", "    ")
@@ -126,11 +126,16 @@ func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) 
 	log.Printf("Total execution time: %s\n", time.Since(start))
 	if verbose {
 		log.Printf("%d out of %d successful requests\n", successes.counter, len(reqs)*its)
+		return successes.counter
 	}
+
+	// If verbose isn't enabled simply return 0
+	return 0
+
 }
 
 // Whirlpool runs the specified requests cyclically for a specified number of iterations
-func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChain) {
+func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	if dest != "" {
@@ -187,14 +192,16 @@ func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChai
 				chain.Token = "Bearer " + tokenMap["token"]
 			}
 			// If the status code is 200 and verbose flag is enabled increment successes and output the json
-			if code == 200 && verbose {
+			if code >= 200 && code < 300 {
+				successes++
+			}
+			if verbose {
 				var formattedJSON bytes.Buffer
 				body, _ := ioutil.ReadAll(resp.Body)
 				err := json.Indent(&formattedJSON, body, "", "    ")
 				if err != nil {
 					log.Fatalf("Error printing response body for %s\n", req)
 				}
-				successes++
 				log.Printf("Response body: %s\n", formattedJSON.String())
 			}
 		}
@@ -204,6 +211,8 @@ func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChai
 	if verbose {
 		log.Printf("%d out of %d successful requests\n", successes, len(reqs)*its)
 	}
+
+	return successes
 }
 
 func (r Request) String() string {

@@ -1,5 +1,4 @@
 {
-  "name": "Joe Biden",
-  "salary": "1000",
-  "age": "23"
+  "foo1": "bar1",
+  "foo2": "bar2"
 }

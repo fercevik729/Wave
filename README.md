@@ -15,6 +15,9 @@ go install Wave
 ## Usage
 
 ```bash
+# To check that you correctly installed Wave
+wave --version
+
 # To concurrently load test the API use the 'splash' command
 wave splash 
 
