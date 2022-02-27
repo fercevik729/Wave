@@ -7,6 +7,7 @@ Wave is a command line application built using the Cobra CLI framework to load-t
 ```bash
 # To get the package
 go get github.com/fercevik729/Wave
+
 # To install the CLI tool
 go install Wave
 ```
@@ -39,7 +40,9 @@ wave splash -r "./reqs/firstapirequests.txt"
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-Please make sure to update tests as appropriate.
+## Future ideas
+* Enable the creation of test-suites in YAML
+* Enable encrypting data files
 
 ## License
 © Furkan T. Ercevik
