@@ -1,5 +1,6 @@
 /*
 Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
+
 */
 package cmd
 
@@ -7,6 +8,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"strconv"
 
 	"github.com/spf13/viper"
 )
@@ -28,6 +30,9 @@ var rootCmd = &cobra.Command{
 from the shell interface. It provides an option to concurrently load test your API as well as an option to cyclically test your API.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Welcome to wave")
+		if v, _ := strconv.ParseBool(cmd.PersistentFlags().Lookup("version").Value.String()); v {
+			fmt.Println("You are using version v1.0.0")
+		}
 	},
 }
 
@@ -50,6 +55,7 @@ func init() {
 	// will be global for your application.
 
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "wave.yaml", "config file")
+	rootCmd.PersistentFlags().Bool("version", false, "outputs version number of program")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "option to enable more detailed output")
 	rootCmd.PersistentFlags().StringVarP(&requestsFile, "requests", "r", "./requests/http.txt", "file containing the HTTP requests")
 	rootCmd.PersistentFlags().StringVarP(&logFile, "output", "o", "", "file to write output to")
