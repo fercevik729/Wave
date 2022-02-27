@@ -4,27 +4,36 @@ Wave is a command line application built using the Cobra CLI framework to load-t
 
 ## Installation
 
-Download the library as a .zip file and execute the following command
-
 ```bash
+# To get the package
+go get github.com/fercevik729/Wave
+# To install the CLI tool
 go install Wave
 ```
 
 ## Usage
 
 ```bash
-# Concurrently load tests the API for 10 sets and outputs response bodies
-./main -n=10 -reqs=./requests/http.txt -v=true
+# To concurrently load test the API use the 'splash' command
+wave splash 
 
-# Cyclically tests requests in the text file 
-./main -n=10 -reqs=./requests/http.txt -v=true -w=true
+# To sequentially test the API use the 'whirl' command
+wave whirl
 
-# Sets API username and password and tests requests cyclically
-./main -n=10 -u=godeveloper123 -p=ilovegophers -reqs=./requests/http.txt -w=true
+# To output results to a log file use the -o flag
+wave splash -o "first.log"
 
+# To set the credentials yaml file use the -c flag
+wave whirl -c "./data/mycredentials.yaml"
 
-# Sets API token and performs cyclic tests
-./main -n=10 -t=123njak2ams120982n11xa1x098956785dcpofwe -reqs=./requests/http.txt -w=true
+# To set the iterations use the -i flag
+wave splash -i 20 # 20 sets of requests
+
+# To enable verbose output use the -v flag
+wave whirl -v
+
+# To set the requests file use the -r flag
+wave splash -r "./reqs/firstapirequests.txt"
 ```
 
 ## Contributing

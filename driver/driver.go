@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,6 +15,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 // New creates new Request structs
@@ -173,7 +174,7 @@ func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChai
 			}
 			code := resp.StatusCode
 			log.Printf("Status code %d for %s\n", code, req)
-			log.Printf("Request took %s to process\n", time.Since(reqStart))
+			log.Printf("Request took %s to process\n\n", time.Since(reqStart))
 
 			// Get the API token from the POST response body
 			if req.reqType == "POST" && req.isAuth {
@@ -196,7 +197,6 @@ func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChai
 				successes++
 				log.Printf("Response body: %s\n", formattedJSON.String())
 			}
-			fmt.Println()
 		}
 	}
 

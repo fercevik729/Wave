@@ -4,8 +4,8 @@ Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
 package cmd
 
 import (
-	"Wave/driver"
 	"fmt"
+	"github.com/fercevik729/Wave/driver"
 	"github.com/spf13/cobra"
 )
 
