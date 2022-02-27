@@ -28,7 +28,7 @@ wave whirl
 wave splash -o "first.log"
 
 # To set the credentials yaml file use the -c flag
-wave whirl -c "./data/mycredentials.yaml"
+wave whirl -c "./data/my-credentials.yaml"
 
 # To set the iterations use the -i flag
 wave splash -i 20 # 20 sets of requests
@@ -37,7 +37,10 @@ wave splash -i 20 # 20 sets of requests
 wave whirl -v
 
 # To set the requests file use the -r flag
-wave splash -r "./reqs/firstapirequests.txt"
+wave splash -r "./reqs/first-api-requests.txt"
+
+# Flags can also be combined
+wave splash -r "./requests/first-http.txt" -i 15 -v -o "first.log"
 ```
 
 ## Contributing
