@@ -282,14 +282,38 @@ type KeyChain struct {
 	Pass  string `yaml:"pass"`
 	Token string `yaml:"token"`
 }
-
 type YAMLRequest struct {
-	method      string `yaml:"method"`
-	base        string `yaml:"base"`
-	endpoint    string `yaml:"endpoint"`
-	successCode int    `yaml:"success-code"`
-	dataFile    string `yaml:"data-file"`
-	contentType string `yaml:"content-type"`
+	Method      string `yaml:"method"`
+	Base        string `yaml:"base"`
+	Endpoint    string `yaml:"endpoint"`
+	SuccessCode int    `yaml:"success-code"`
+	DataFile    string `yaml:"data-file"`
+	ContentType string `yaml:"content-type"`
+	IsAuth      bool   `yaml:"is-auth"`
+	RToken      bool   `yaml:"r-token"`
+}
+
+func NewYAMLRequests(filepath string) map[string]YAMLRequest {
+
+	f, err := os.Open(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(f)
+
+	data, _ := ioutil.ReadAll(f)
+	var reqs map[string]YAMLRequest
+	err = yaml.Unmarshal(data, &reqs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return reqs
+
 }
 
 func (c *KeyChain) String() string {

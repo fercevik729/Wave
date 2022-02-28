@@ -76,3 +76,29 @@ func TestNew(t *testing.T) {
 		t.Errorf("Expected and actual keychains are not equal")
 	}
 }
+
+func TestNewYAMLRequests(t *testing.T) {
+	actualReqs := NewYAMLRequests("../requests/reqs.yaml")
+	expectedReqs := make(map[string]YAMLRequest, 0)
+
+	expectedReqs["request-1"] = YAMLRequest{
+		Method:      "GET",
+		Base:        "https://api.sampleapis.com",
+		Endpoint:    "/coffee/hot",
+		SuccessCode: 200,
+	}
+	expectedReqs["request-2"] = YAMLRequest{
+		Method:      "POST",
+		Base:        "https://postman-echo.com",
+		Endpoint:    "/post",
+		SuccessCode: 200,
+		DataFile:    "./data/post.json",
+		ContentType: "application/json",
+		IsAuth:      true,
+		RToken:      false,
+	}
+
+	if !reflect.DeepEqual(actualReqs, expectedReqs) {
+		t.Errorf("Expected %v, got %v", actualReqs, expectedReqs)
+	}
+}
