@@ -1,0 +1,17 @@
+# Sample yaml requests file to better comply with logging
+requests:
+  req1:
+    method: "GET"
+    base: "https://api.sampleapis.com"
+    endpoint: "/coffee/hot"
+    success-code: 200
+    protocol: 1.0
+
+  req2:
+    method: "POST"
+    base: "https://postman-echo.com"
+    endpoint: "/post"
+    success-code: 200
+    data-file: "./data/post.json"
+    content-type: "application/json"
+

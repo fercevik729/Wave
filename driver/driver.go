@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+// TODO: Create yaml requests file
+
 // New creates new Request structs
 func New(inFile string, authFile string) ([]Request, KeyChain) {
 
@@ -279,6 +281,15 @@ type KeyChain struct {
 	User  string `yaml:"user"`
 	Pass  string `yaml:"pass"`
 	Token string `yaml:"token"`
+}
+
+type YAMLRequest struct {
+	method      string `yaml:"method"`
+	base        string `yaml:"base"`
+	endpoint    string `yaml:"endpoint"`
+	successCode int    `yaml:"success-code"`
+	dataFile    string `yaml:"data-file"`
+	contentType string `yaml:"content-type"`
 }
 
 func (c *KeyChain) String() string {
