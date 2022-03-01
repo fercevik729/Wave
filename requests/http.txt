@@ -1,2 +1,0 @@
-GET https://api.sampleapis.com/coffee/hot
-POST https://postman-echo.com/post ./data/post.json

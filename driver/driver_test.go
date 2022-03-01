@@ -24,13 +24,13 @@ func TestWhirlpool(t *testing.T) {
 		SuccessCode: 200,
 		DataFile:    "./data/post.json",
 		ContentType: "application/json",
-		IsAuth:      true,
+		IsAuth:      false,
 		RToken:      false,
 	}
 	actual := Whirlpool(10, reqs, false, "", KeyChain{})
 	expected := 20
 	if actual != expected {
-		t.Errorf("Expected %d successes, but got %d successes\n", actual, expected)
+		t.Errorf("Expected %d successes, but got %d successes\n", expected, actual)
 	}
 }
 
@@ -60,8 +60,8 @@ func TestSplash(t *testing.T) {
 	}
 }
 
-func TestNews(t *testing.T) {
-	actualReqs, actChain := New("../requests/reqs.yaml", "../data/cred.yaml")
+func TestNew(t *testing.T) {
+	actualReqs, actChain := New("../requests/test-reqs.yaml", "../data/cred.yaml")
 	expectedReqs := make(map[string]Request, 0)
 	expectedChain := KeyChain{
 		User:  "developer45@gmail.com",
@@ -80,9 +80,9 @@ func TestNews(t *testing.T) {
 		Base:        "https://postman-echo.com",
 		Endpoint:    "/post",
 		SuccessCode: 200,
-		DataFile:    "./data/post.json",
+		DataFile:    "../data/post.json",
 		ContentType: "application/json",
-		IsAuth:      true,
+		IsAuth:      false,
 		RToken:      false,
 	}
 

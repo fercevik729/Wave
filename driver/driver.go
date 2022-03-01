@@ -17,8 +17,6 @@ import (
 	"time"
 )
 
-// TODO: Create yaml requests file
-
 // New creates new Request structs and returns a Keychain struct
 func New(reqFile, authFile string) (map[string]Request, KeyChain) {
 
@@ -58,8 +56,10 @@ func New(reqFile, authFile string) (map[string]Request, KeyChain) {
 func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
+	var out *os.File
 	if dest != "" {
 		outFile, err := os.OpenFile("./logs/"+dest, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
+		out = outFile
 		if err != nil {
 			log.Fatalf("Couldn't open output file %s", dest)
 		}
@@ -73,7 +73,16 @@ func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain K
 		log.SetOutput(outFile)
 	}
 
-	log.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
+	startMessage := fmt.Sprintf("Sending %d Request(s) for %d sets to", len(reqs), its)
+	count := 0
+	for _, request := range reqs {
+		startMessage += " " + request.Base
+		if count != len(reqs)-1 {
+			startMessage += ","
+		}
+		count++
+	}
+	log.Println(startMessage)
 	start := time.Now()
 	successes := safeCounter{}
 	client := &http.Client{}
@@ -96,19 +105,28 @@ func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain K
 					log.Fatalf("Couldn't construct %s\n", req)
 				}
 				// Set other parameters besides the Request body
+				reqStart := time.Now()
 				resp, err := client.Do(r)
 				if err != nil {
 					log.Fatalf("%s timed out\n", req)
 				}
-				// Log using common log format
+				// Log to output file or stdout
 				code := resp.StatusCode
-				log.Printf("%s %d %d\n", req, code, resp.ContentLength)
+				message := fmt.Sprintf("%s %d %d, %s\n", req, code, resp.ContentLength, time.Since(reqStart))
+				if dest != "" {
+					_, err := out.WriteString(message)
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					fmt.Print(message)
+				}
 
 				// If the status code is the same as the expected and verbose flag is on increment successes and output the json
 				if code == req.SuccessCode && verbose {
 					var formattedJSON bytes.Buffer
 					body, _ := ioutil.ReadAll(resp.Body)
-					err := json.Indent(&formattedJSON, body, "", "    ")
+					err = json.Indent(&formattedJSON, body, "", "    ")
 					if err != nil {
 						log.Fatalf("Error printing response body for %s\n", req)
 					}
@@ -134,8 +152,10 @@ func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain K
 func Whirlpool(its int, reqs map[string]Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
+	var out *os.File
 	if dest != "" {
 		outFile, err := os.OpenFile("./logs/"+dest, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0666)
+		out = outFile
 		if err != nil {
 			log.Fatalf("Couldn't open output file %s", dest)
 		}
@@ -148,19 +168,28 @@ func Whirlpool(its int, reqs map[string]Request, verbose bool, dest string, chai
 
 		log.SetOutput(outFile)
 	}
-	log.Printf("Running %d Request(s) for %d sets:\n", len(reqs), its)
+	startMessage := fmt.Sprintf("Sending %d Request(s) for %d sets to", len(reqs), its)
+	count := 0
+	for _, request := range reqs {
+		startMessage += " " + request.Base
+		if count != len(reqs)-1 {
+			startMessage += ","
+		}
+		count++
+	}
 	absStart := time.Now()
 	client := &http.Client{}
 	successes := 0
 
 	for i := 0; i < its; i++ {
 		for _, req := range reqs {
-			// Get the prepared requests
+			// Get the prepared request
 			r, err := req.PrepareRequest(chain)
 			if err != nil {
 				log.Fatalf("Couldn't construct %s\n", req)
 			}
 
+			// Get start time and run the request
 			reqStart := time.Now()
 			resp, err := client.Do(r)
 			if err != nil {
@@ -168,7 +197,15 @@ func Whirlpool(its int, reqs map[string]Request, verbose bool, dest string, chai
 			}
 			// Log using common log format
 			code := resp.StatusCode
-			log.Printf("%s %d %d, took %s to process\n", req, code, resp.ContentLength, time.Since(reqStart))
+			message := fmt.Sprintf("%s %d %d, %s\n", req, code, resp.ContentLength, time.Since(reqStart))
+			if dest != "" {
+				_, err := out.WriteString(message)
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				fmt.Print(message)
+			}
 
 			// Get the API token from the POST response body
 			if req.Method == "POST" && req.IsAuth {

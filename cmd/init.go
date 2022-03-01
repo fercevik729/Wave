@@ -33,10 +33,10 @@ var initCmd = &cobra.Command{
 			}
 			return nil
 		}
-		if createBlankFile("./requests/http.txt") == nil {
-			fmt.Println("requests/http.txt already exists")
+		if createBlankFile("./requests/reqs.yaml") == nil {
+			fmt.Println("requests/reqs.yaml already exists")
 		} else {
-			fmt.Println("Created requests/http.txt")
+			fmt.Println("Created requests/reqs.yaml")
 		}
 
 		// Create the logs dir

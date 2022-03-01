@@ -6,9 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="8f06ce30-7b27-4937-a656-7dfa97699772" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/root.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/root.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/init.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/init.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/driver/driver.go" beforeDir="false" afterPath="$PROJECT_DIR$/driver/driver.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/driver/driver_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/driver/driver_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requests/http.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/requests/test-requests.txt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,7 +34,6 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/cmd/root.go" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/requests/http.txt" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/cmd/splash.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/cmd/whirl.go" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/driver/driver.go" root0="FORCE_HIGHLIGHTING" />
@@ -60,8 +61,8 @@
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
-  <component name="RunManager" selected="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver (2)">
-    <configuration name="TestNewYAMLRequests in github.com/fercevik729/Wave/driver (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.go test github.com/fercevik729/Wave/driver">
+    <configuration name="TestNew in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
@@ -70,10 +71,10 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestNewYAMLRequests\E$" />
+      <pattern value="^\QTestNew\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestNewYAMLRequests in github.com/fercevik729/Wave/driver (2)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestNews in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
@@ -82,10 +83,10 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestNewYAMLRequests\E$" />
+      <pattern value="^\QTestNews\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestNewYAMLRequests in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestSplash in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
@@ -94,18 +95,19 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestNewYAMLRequests\E$" />
+      <pattern value="^\QTestSplash\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="driver_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestWhirlpool in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <package value="github.com/fercevik729/Wave" />
+      <kind value="PACKAGE" />
+      <package value="github.com/fercevik729/Wave/driver" />
       <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/driver/driver_test.go" />
+      <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
+      <pattern value="^\QTestWhirlpool\E$" />
       <method v="2" />
     </configuration>
     <configuration name="go test github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -121,11 +123,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver (2)" />
-        <item itemvalue="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver (1)" />
-        <item itemvalue="Go Test.driver_test.go" />
-        <item itemvalue="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver" />
         <item itemvalue="Go Test.go test github.com/fercevik729/Wave/driver" />
+        <item itemvalue="Go Test.TestNew in github.com/fercevik729/Wave/driver" />
+        <item itemvalue="Go Test.TestWhirlpool in github.com/fercevik729/Wave/driver" />
+        <item itemvalue="Go Test.TestNews in github.com/fercevik729/Wave/driver" />
+        <item itemvalue="Go Test.TestSplash in github.com/fercevik729/Wave/driver" />
       </list>
     </recent_temporary>
   </component>
