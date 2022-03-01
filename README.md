@@ -18,6 +18,9 @@ go install Wave
 # To check that you correctly installed Wave
 wave --version
 
+# To initialize empty setup files and directories
+wave init
+
 # To concurrently load test the API use the 'splash' command
 wave splash 
 
@@ -37,10 +40,10 @@ wave splash -i 20 # 20 sets of requests
 wave whirl -v
 
 # To set the requests file use the -r flag
-wave splash -r "./reqs/first-api-requests.txt"
+wave splash -r "./reqs/first-api-requests.yaml"
 
 # Flags can also be combined
-wave splash -r "./requests/first-http.txt" -i 15 -v -o "first.log"
+wave splash -r "./requests/first-http.yaml" -i 15 -v -o "first.log"
 ```
 
 ## Contributing
