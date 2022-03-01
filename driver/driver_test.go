@@ -5,25 +5,29 @@ Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
 package driver
 
 import (
-	"bytes"
 	"reflect"
 	"testing"
 )
 
 func TestWhirlpool(t *testing.T) {
-	requests := make([]Request, 0)
-	requests = append(requests, Request{
-		reqType:  "GET",
-		endpoint: "https://api.sampleapis.com/coffee/hot",
-		body:     bytes.Buffer{},
-		isAuth:   false,
-	}, Request{
-		reqType:  "POST",
-		endpoint: "https://postman-echo.com/post",
-		body:     *readJsonFile("../data/post.json"),
-		isAuth:   false,
-	})
-	actual := Whirlpool(10, requests, false, "", KeyChain{})
+	reqs := make(map[string]Request, 0)
+	reqs["request-1"] = Request{
+		Method:      "GET",
+		Base:        "https://api.sampleapis.com",
+		Endpoint:    "/coffee/hot",
+		SuccessCode: 200,
+	}
+	reqs["request-2"] = Request{
+		Method:      "POST",
+		Base:        "https://postman-echo.com",
+		Endpoint:    "/post",
+		SuccessCode: 200,
+		DataFile:    "./data/post.json",
+		ContentType: "application/json",
+		IsAuth:      true,
+		RToken:      false,
+	}
+	actual := Whirlpool(10, reqs, false, "", KeyChain{})
 	expected := 20
 	if actual != expected {
 		t.Errorf("Expected %d successes, but got %d successes\n", actual, expected)
@@ -31,63 +35,47 @@ func TestWhirlpool(t *testing.T) {
 }
 
 func TestSplash(t *testing.T) {
-	requests := make([]Request, 0)
-	requests = append(requests, Request{
-		reqType:  "GET",
-		endpoint: "https://api.sampleapis.com/coffee/hot",
-		body:     bytes.Buffer{},
-		isAuth:   false,
-	}, Request{
-		reqType:  "POST",
-		endpoint: "https://postman-echo.com/post",
-		body:     *readJsonFile("../data/post.json"),
-		isAuth:   false,
-	})
-	actual := Splash(10, requests, true, "", KeyChain{})
+	reqs := make(map[string]Request, 0)
+	reqs["request-1"] = Request{
+		Method:      "GET",
+		Base:        "https://api.sampleapis.com",
+		Endpoint:    "/coffee/hot",
+		SuccessCode: 200,
+	}
+	reqs["request-2"] = Request{
+		Method:      "POST",
+		Base:        "https://postman-echo.com",
+		Endpoint:    "/post",
+		SuccessCode: 200,
+		DataFile:    "./data/post.json",
+		ContentType: "application/json",
+		IsAuth:      true,
+		RToken:      false,
+	}
+
+	actual := Splash(10, reqs, true, "", KeyChain{})
 	expected := 20
 	if actual != expected {
 		t.Errorf("Expected %d successes, but got %d successes\n", actual, expected)
 	}
 }
 
-func TestNew(t *testing.T) {
-	actReqs, actChain := New("../requests/test-requests.txt", "../data/cred.yaml")
-	expReqs := []Request{
-		{
-			reqType:  "GET",
-			endpoint: "https://api.sampleapis.com/coffee/hot",
-			body:     bytes.Buffer{},
-			isAuth:   false,
-		}, {
-			reqType:  "POST",
-			endpoint: "https://postman-echo.com/post",
-			body:     *readJsonFile("../data/post.json"),
-			isAuth:   false,
-		}}
-	if !reflect.DeepEqual(actReqs, expReqs) {
-		t.Errorf("Expected and actual requests are not equal")
-	}
-	expChain := KeyChain{
+func TestNews(t *testing.T) {
+	actualReqs, actChain := New("../requests/reqs.yaml", "../data/cred.yaml")
+	expectedReqs := make(map[string]Request, 0)
+	expectedChain := KeyChain{
 		User:  "developer45@gmail.com",
 		Pass:  "password1234",
 		Token: "Bearer xxxxxxxxxxxxxxxxxxxxxxxx",
 	}
-	if actChain != expChain {
-		t.Errorf("Expected and actual keychains are not equal")
-	}
-}
 
-func TestNewYAMLRequests(t *testing.T) {
-	actualReqs := NewYAMLRequests("../requests/reqs.yaml")
-	expectedReqs := make(map[string]YAMLRequest, 0)
-
-	expectedReqs["request-1"] = YAMLRequest{
+	expectedReqs["request-1"] = Request{
 		Method:      "GET",
 		Base:        "https://api.sampleapis.com",
 		Endpoint:    "/coffee/hot",
 		SuccessCode: 200,
 	}
-	expectedReqs["request-2"] = YAMLRequest{
+	expectedReqs["request-2"] = Request{
 		Method:      "POST",
 		Base:        "https://postman-echo.com",
 		Endpoint:    "/post",
@@ -99,6 +87,9 @@ func TestNewYAMLRequests(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(actualReqs, expectedReqs) {
-		t.Errorf("Expected %v, got %v", actualReqs, expectedReqs)
+		t.Errorf("Requests: expected %v, but got %v", expectedReqs, actualReqs)
+	}
+	if actChain != expectedChain {
+		t.Errorf("Keychain: expected %v, but got %v", expectedChain, actChain)
 	}
 }

@@ -11,6 +11,6 @@ request-2:
   success-code: 200
   data-file: "./data/post.json"
   content-type: "application/json"
-  is-auth: true
+  is-auth: false
   r-token: false
 

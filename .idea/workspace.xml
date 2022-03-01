@@ -6,10 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="8f06ce30-7b27-4937-a656-7dfa97699772" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/root.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/root.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/driver/driver.go" beforeDir="false" afterPath="$PROJECT_DIR$/driver/driver.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/driver/driver_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/driver/driver_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requests/reqs.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/requests/reqs.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,8 +60,8 @@
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
-  <component name="RunManager" selected="Go Test.driver_test.go">
-    <configuration name="TestNewYAMLRequests in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver (2)">
+    <configuration name="TestNewYAMLRequests in github.com/fercevik729/Wave/driver (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
@@ -74,15 +73,28 @@
       <pattern value="^\QTestNewYAMLRequests\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="driver_test.go (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestNewYAMLRequests in github.com/fercevik729/Wave/driver (2)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <package value="github.com/fercevik729/Wave" />
+      <kind value="PACKAGE" />
+      <package value="github.com/fercevik729/Wave/driver" />
       <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/driver/driver_test.go" />
+      <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
+      <pattern value="^\QTestNewYAMLRequests\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestNewYAMLRequests in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="Wave" />
+      <working_directory value="$PROJECT_DIR$/driver" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/fercevik729/Wave/driver" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestNewYAMLRequests\E$" />
       <method v="2" />
     </configuration>
     <configuration name="driver_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -107,24 +119,13 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
-    <configuration name="gobench github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="Wave" />
-      <working_directory value="$PROJECT_DIR$/driver" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/fercevik729/Wave/driver" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gobench" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver (2)" />
+        <item itemvalue="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver (1)" />
         <item itemvalue="Go Test.driver_test.go" />
         <item itemvalue="Go Test.TestNewYAMLRequests in github.com/fercevik729/Wave/driver" />
         <item itemvalue="Go Test.go test github.com/fercevik729/Wave/driver" />
-        <item itemvalue="Go Test.gobench github.com/fercevik729/Wave/driver" />
-        <item itemvalue="Go Test.driver_test.go (1)" />
       </list>
     </recent_temporary>
   </component>

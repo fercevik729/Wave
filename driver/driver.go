@@ -5,7 +5,6 @@ Copyright © 2022 Furkan Ercevik ercevik.furkan@gmail.com
 package driver
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -14,54 +13,49 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"sync"
 	"time"
 )
 
 // TODO: Create yaml requests file
 
-// New creates new Request structs
-func New(inFile string, authFile string) ([]Request, KeyChain) {
+// New creates new Request structs and returns a Keychain struct
+func New(reqFile, authFile string) (map[string]Request, KeyChain) {
 
-	// Gather all the requests and Request data
-	f, err := os.Open(inFile)
+	// Open yaml file
+	f, err := os.Open(reqFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(f)
+	// Get the credentials
+	credentials := ReadCredentials(authFile)
+
+	// Unmarshal yaml data
+	data, _ := ioutil.ReadAll(f)
+	var reqs map[string]Request
+	err = yaml.Unmarshal(data, &reqs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			log.Fatalf("Couldn't close the file %s", inFile)
+	// Set request bodies
+	for _, request := range reqs {
+		if request.DataFile != "" {
+			request.Body = *ReadJsonFile(request.DataFile)
 		}
-	}(f)
-
-	// Create slice of Request structs
-	var requests []Request
-	credentials := ReadCredentials(authFile)
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		text := strings.Split(scanner.Text(), " ")
-		// Creates the Request struct
-		r := Request{
-			reqType:  text[0],
-			endpoint: text[1],
-		}
-		if len(text) == 3 && text[2] != "AUTH" {
-			r.body = *readJsonFile(text[2])
-		} else if len(text) == 3 && text[2] == "AUTH" {
-			r.isAuth = true
-		}
-
-		requests = append(requests, r)
 	}
+	return reqs, credentials
 
-	return requests, credentials
 }
 
 // Splash runs the specified requests concurrently with the option to count how many requests had a status code of
-func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) int {
+func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	if dest != "" {
@@ -85,32 +79,33 @@ func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) 
 	client := &http.Client{}
 	var wg sync.WaitGroup
 
+	// Run the requests for its sets and
 	for i := 0; i < its; i++ {
-		wg.Add(1)
-		go func() {
-			if verbose {
-				successes.Lock()
-				defer successes.Unlock()
-			}
-			defer wg.Done()
-			for _, req := range reqs {
-				r, err := http.NewRequest(req.reqType, req.endpoint, &req.body)
+		for _, req := range reqs {
+			wg.Add(1)
+			req := req
+			// Create goroutines for each request
+			go func() {
+				defer wg.Done()
+				if verbose {
+					successes.Lock()
+					defer successes.Unlock()
+				}
+				r, err := req.PrepareRequest(chain)
 				if err != nil {
 					log.Fatalf("Couldn't construct %s\n", req)
 				}
 				// Set other parameters besides the Request body
-				r.Header.Set("content-Type", "application/json")
-				r.Header.Set("Authorization", chain.Token)
-				// If the method is a POST method that gets an API token set the username and password fields
 				resp, err := client.Do(r)
 				if err != nil {
 					log.Fatalf("%s timed out\n", req)
 				}
+				// Log using common log format
 				code := resp.StatusCode
-				log.Printf("Status code %d for %s\n", code, req)
+				log.Printf("%s %d %d\n", req, code, resp.ContentLength)
 
-				// If the status code is 200 and verbose flag is enabled increment successes and output the json
-				if code >= 200 && code < 300 && verbose {
+				// If the status code is the same as the expected and verbose flag is on increment successes and output the json
+				if code == req.SuccessCode && verbose {
 					var formattedJSON bytes.Buffer
 					body, _ := ioutil.ReadAll(resp.Body)
 					err := json.Indent(&formattedJSON, body, "", "    ")
@@ -120,9 +115,8 @@ func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) 
 					successes.counter++
 					log.Printf("Response body: %s\n", formattedJSON.String())
 				}
-
-			}
-		}()
+			}()
+		}
 	}
 	wg.Wait()
 	log.Printf("Total execution time: %s\n", time.Since(start))
@@ -137,7 +131,7 @@ func Splash(its int, reqs []Request, verbose bool, dest string, chain KeyChain) 
 }
 
 // Whirlpool runs the specified requests cyclically for a specified number of iterations
-func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChain) int {
+func Whirlpool(its int, reqs map[string]Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	if dest != "" {
@@ -160,31 +154,24 @@ func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChai
 	successes := 0
 
 	for i := 0; i < its; i++ {
-
 		for _, req := range reqs {
-
-			r, err := http.NewRequest(req.reqType, req.endpoint, &req.body)
+			// Get the prepared requests
+			r, err := req.PrepareRequest(chain)
 			if err != nil {
 				log.Fatalf("Couldn't construct %s\n", req)
 			}
-			// Set other parameters besides the Request body
-			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("Authorization", chain.Token)
-			// If the method is a POST method that gets an API token set the username and password fields
-			if req.reqType == "POST" && req.isAuth {
-				r.SetBasicAuth(chain.User, chain.Pass)
-			}
+
 			reqStart := time.Now()
 			resp, err := client.Do(r)
 			if err != nil {
 				log.Fatalf("%s timed out\n", req)
 			}
+			// Log using common log format
 			code := resp.StatusCode
-			log.Printf("Status code %d for %s\n", code, req)
-			log.Printf("Request took %s to process\n\n", time.Since(reqStart))
+			log.Printf("%s %d %d, took %s to process\n", req, code, resp.ContentLength, time.Since(reqStart))
 
 			// Get the API token from the POST response body
-			if req.reqType == "POST" && req.isAuth {
+			if req.Method == "POST" && req.IsAuth {
 				var tokenMap map[string]string
 				body, _ := ioutil.ReadAll(resp.Body)
 				err := json.Unmarshal(body, &tokenMap)
@@ -194,7 +181,7 @@ func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChai
 				chain.Token = "Bearer " + tokenMap["token"]
 			}
 			// If the status code is 200 and verbose flag is enabled increment successes and output the json
-			if code >= 200 && code < 300 {
+			if code == req.SuccessCode {
 				successes++
 			}
 			if verbose {
@@ -217,16 +204,35 @@ func Whirlpool(its int, reqs []Request, verbose bool, dest string, chain KeyChai
 	return successes
 }
 
+// String outputs Request and YAMLRequest details
 func (r Request) String() string {
-	return fmt.Sprintf("Request type: %s, endpoint: %s", r.reqType, r.endpoint)
+	return fmt.Sprintf("127.0.0.1 - - [%s] \"%s %s HTTP/1.0\"", time.Now().Format("2/Jan/2006:15:04:05 -0700"),
+		r.Method, r.Endpoint)
 }
 
-// readJsonFile reads in JSON files for CUD requests
-func readJsonFile(filepath string) *bytes.Buffer {
+// PrepareRequest returns http.Request structs
+func (r *Request) PrepareRequest(key KeyChain) (*http.Request, error) {
+	req, err := http.NewRequest(r.Method, r.Base+r.Endpoint, &r.Body)
+	if err != nil {
+		return &http.Request{}, err
+	}
+	// Set headers appropriately
+	req.Header.Set("Content-Type", r.ContentType)
+	if r.IsAuth {
+		req.SetBasicAuth(key.User, key.Pass)
+	} else if r.RToken {
+		req.Header.Set("Authorization", key.Token)
+	}
+
+	return req, nil
+
+}
+
+// ReadJsonFile reads in JSON files for Create, Update, and Delete requests
+func ReadJsonFile(filepath string) *bytes.Buffer {
 	jsonFile, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalf("Couldn't open json file at %s\n", filepath)
-		return nil
 	}
 	defer func(jsonFile *os.File) {
 		err := jsonFile.Close()
@@ -265,13 +271,6 @@ func ReadCredentials(filepath string) KeyChain {
 	return keys
 }
 
-type Request struct {
-	reqType  string
-	endpoint string
-	body     bytes.Buffer
-	isAuth   bool
-}
-
 type safeCounter struct {
 	sync.Mutex
 	counter int
@@ -282,7 +281,7 @@ type KeyChain struct {
 	Pass  string `yaml:"pass"`
 	Token string `yaml:"token"`
 }
-type YAMLRequest struct {
+type Request struct {
 	Method      string `yaml:"method"`
 	Base        string `yaml:"base"`
 	Endpoint    string `yaml:"endpoint"`
@@ -291,29 +290,7 @@ type YAMLRequest struct {
 	ContentType string `yaml:"content-type"`
 	IsAuth      bool   `yaml:"is-auth"`
 	RToken      bool   `yaml:"r-token"`
-}
-
-func NewYAMLRequests(filepath string) map[string]YAMLRequest {
-
-	f, err := os.Open(filepath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(f)
-
-	data, _ := ioutil.ReadAll(f)
-	var reqs map[string]YAMLRequest
-	err = yaml.Unmarshal(data, &reqs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return reqs
-
+	Body        bytes.Buffer
 }
 
 func (c *KeyChain) String() string {

@@ -54,16 +54,12 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "wave.yaml", "config file")
 	rootCmd.PersistentFlags().Bool("version", false, "outputs version number of program")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "option to enable more detailed output")
-	rootCmd.PersistentFlags().StringVarP(&requestsFile, "requests", "r", "./requests/http.txt", "file containing the HTTP requests")
+	rootCmd.PersistentFlags().StringVarP(&requestsFile, "requests", "r", "./requests/reqs.yaml", "file containing the HTTP requests")
 	rootCmd.PersistentFlags().StringVarP(&logFile, "output", "o", "", "file to write output to")
 	rootCmd.PersistentFlags().StringVarP(&credentialsFile, "credentials", "c", "./data/cred.yaml", "yaml file containing credentials")
 	rootCmd.PersistentFlags().IntVarP(&iterations, "iterations", "i", 10, "describes how many sets of requests to run")
-	// err := viper.BindPFlag("requests", rootCmd.PersistentFlags().Lookup("token"))
-	// err = viper.BindPFlag("token", rootCmd.PersistentFlags().Lookup("token"))
-	// viper.SetDefault("requestsFile", "../requests/http.txt")
 }
 
 // initConfig reads in config file and ENV variables if set.
