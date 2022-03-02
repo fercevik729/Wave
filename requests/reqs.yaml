@@ -14,3 +14,12 @@ request-2:
   base: "https://api.sampleapis.com"
   endpoint: "/coffee/hot"
   success-code: 200
+
+
+request-3:
+  method: "GET"
+  base: "https://jsonplaceholder.typicode.com"
+  endpoint: "/photos/{id}"
+  id-range:
+    - 1
+    - 10

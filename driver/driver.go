@@ -8,12 +8,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"reflect"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -37,12 +40,12 @@ type KeyChain struct {
 // ExpectFile: filepath to JSON file containing expected response body
 // IsAuth: specifies if the method is an authentication method
 // RToken: specifies if the method requires a token
-// TODO: add a delay and must contains fields
-// expectedBody: slice of bytes containing JSON from ExpectFile
+// TODO: fix ids so it works in the middle of the endpoint and not just at the end
 type Request struct {
 	Method       string `yaml:"method"`
 	Base         string `yaml:"base"`
 	Endpoint     string `yaml:"endpoint"`
+	IdRange      [2]int `yaml:"id-range"`
 	SuccessCode  int    `yaml:"success-code"`
 	DataFile     string `yaml:"data-file"`
 	ExpectFile   string `yaml:"expect-file"`
@@ -60,7 +63,7 @@ func (c *KeyChain) setToken(token string) {
 
 // String outputs Request details
 func (r Request) String() string {
-	return fmt.Sprintf("127.0.0.1 - - [%s] \"%s %s HTTP/1.0\"", time.Now().Format("2/Jan/2006:15:04:05 -0700"),
+	return fmt.Sprintf("[%s] \"%s %s HTTP/1.1\"", time.Now().Format("2/Jan/2006:15:04:05 -0700"),
 		r.Method, r.Endpoint)
 }
 
@@ -70,7 +73,7 @@ func (c *KeyChain) String() string {
 }
 
 // New creates new Request structs and returns a Keychain struct
-func New(reqFile, authFile string) (map[string]*Request, *KeyChain) {
+func New(reqFile, authFile string) ([]*Request, *KeyChain) {
 
 	// Open yaml file
 	f, err := os.Open(reqFile)
@@ -104,12 +107,28 @@ func New(reqFile, authFile string) (map[string]*Request, *KeyChain) {
 			request.expectedBody = jsonToByte(request.ExpectFile)
 		}
 	}
-	return reqs, credentials
+
+	// Unpack any requests with id ranges
+	finalReqs := make([]*Request, 0)
+	for _, request := range reqs {
+		// If the request has an id range unpack the request and append it to the final slice
+		if request.IdRange != [2]int{} {
+			newReqs, err := request.unpackRequests()
+			if err != nil {
+				log.Fatalf("Improper id range bounds: %e\n", err)
+			}
+			finalReqs = append(finalReqs, newReqs...)
+			// Otherwise, append the original request
+		} else {
+			finalReqs = append(finalReqs, request)
+		}
+	}
+	return finalReqs, credentials
 
 }
 
 // Splash runs the specified requests concurrently with the option to count how many requests had a status code of
-func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain *KeyChain) int {
+func Splash(its int, reqs []*Request, verbose bool, dest string, chain *KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	var out *os.File
@@ -133,9 +152,12 @@ func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain 
 	startMessage := fmt.Sprintf("Sending %d Request(s) for %d sets to", len(reqs), its)
 	count := 0
 	for _, request := range reqs {
-		startMessage += " " + request.Base
-		if count != len(reqs)-1 {
-			startMessage += ","
+		// If the request doesn't send a request to the same base add it to the starting message
+		if !strings.Contains(startMessage, request.Base) {
+			startMessage += " " + request.Base
+			if count != len(reqs)-1 {
+				startMessage += ","
+			}
 		}
 		count++
 	}
@@ -219,7 +241,7 @@ func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain 
 }
 
 // Whirlpool runs the specified requests cyclically for a specified number of iterations
-func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, chain *KeyChain) int {
+func Whirlpool(its int, reqs []*Request, verbose bool, dest string, chain *KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	var out *os.File
@@ -238,16 +260,19 @@ func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, cha
 
 		log.SetOutput(outFile)
 	}
-	// Start message
-	startMessage := fmt.Sprintf("Sending %d Request(s) for %d sets to", len(reqs), its)
+	startMessage := ""
 	count := 0
 	for _, request := range reqs {
-		startMessage += " " + request.Base
-		if count != len(reqs)-1 {
-			startMessage += ","
+		// If the request doesn't send a request to the same base add it to the starting message
+		if !strings.Contains(startMessage, request.Base) {
+			startMessage += " " + request.Base
+			if count != len(reqs)-1 {
+				startMessage += ","
+			}
 		}
 		count++
 	}
+	log.Println(startMessage)
 	absStart := time.Now()
 	client := &http.Client{
 		Timeout: 15 * time.Second,
@@ -340,6 +365,33 @@ func (r *Request) prepareRequest(key *KeyChain) (*http.Request, error) {
 
 	return req, nil
 
+}
+
+// unpackRequests returns a slice of *Request structs for a given Request struct with an id range
+func (r *Request) unpackRequests() ([]*Request, error) {
+	finalRequests := make([]*Request, 0)
+
+	// Improper bounds
+	if !(r.IdRange[1] > r.IdRange[0]) {
+		var err error
+		return nil, err
+	}
+	for i := r.IdRange[0]; i <= r.IdRange[1]; i++ {
+		// Create the new endpoint
+		newEndpoint := strings.ReplaceAll(r.Endpoint, "{id}", strconv.Itoa(i))
+		newReq := &Request{}
+		err := copier.Copy(&newReq, r)
+		if err != nil {
+			return nil, err
+		}
+		// Set the endpoint and clear the other fields
+		newReq.Endpoint = newEndpoint
+		newReq.IdRange = [2]int{}
+
+		finalRequests = append(finalRequests, newReq)
+	}
+
+	return finalRequests, nil
 }
 
 // jsonEqual compares two slices of JSONified bytes, returns true if they match, otherwise false
