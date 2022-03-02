@@ -13,12 +13,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"sync"
 	"time"
 )
 
 // New creates new Request structs and returns a Keychain struct
-func New(reqFile, authFile string) (map[string]Request, KeyChain) {
+func New(reqFile, authFile string) (map[string]*Request, KeyChain) {
 
 	// Open yaml file
 	f, err := os.Open(reqFile)
@@ -34,9 +35,9 @@ func New(reqFile, authFile string) (map[string]Request, KeyChain) {
 	// Get the credentials
 	credentials := ReadCredentials(authFile)
 
-	// Unmarshal yaml data
+	// Unmarshal yaml data into a map of Request pointers
 	data, _ := ioutil.ReadAll(f)
-	var reqs map[string]Request
+	var reqs map[string]*Request
 	err = yaml.Unmarshal(data, &reqs)
 	if err != nil {
 		log.Fatal(err)
@@ -47,13 +48,17 @@ func New(reqFile, authFile string) (map[string]Request, KeyChain) {
 		if request.DataFile != "" {
 			request.Body = *ReadJsonFile(request.DataFile)
 		}
+		// Set the expected body of the request
+		if request.ExpectFile != "" {
+			request.ExpectedBody = JSONToByte(request.ExpectFile)
+		}
 	}
 	return reqs, credentials
 
 }
 
 // Splash runs the specified requests concurrently with the option to count how many requests had a status code of
-func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain KeyChain) int {
+func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	var out *os.File
@@ -126,12 +131,22 @@ func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain K
 				if code == req.SuccessCode && verbose {
 					var formattedJSON bytes.Buffer
 					body, _ := ioutil.ReadAll(resp.Body)
+					// If the request has an expected file, check if the response json body matches with the expected body
 					err = json.Indent(&formattedJSON, body, "", "    ")
 					if err != nil {
 						log.Fatalf("Error printing response body for %s\n", req)
 					}
-					successes.counter++
 					log.Printf("Response body: %s\n", formattedJSON.String())
+					if req.ExpectFile != "" {
+						match := JSONEqual(req.ExpectedBody, body)
+						if match {
+							successes.counter++
+						} else {
+							log.Println("Response JSON body does NOT match expected JSON body")
+						}
+					} else {
+						successes.counter++
+					}
 				}
 			}()
 		}
@@ -149,7 +164,7 @@ func Splash(its int, reqs map[string]Request, verbose bool, dest string, chain K
 }
 
 // Whirlpool runs the specified requests cyclically for a specified number of iterations
-func Whirlpool(its int, reqs map[string]Request, verbose bool, dest string, chain KeyChain) int {
+func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, chain KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	var out *os.File
@@ -178,7 +193,9 @@ func Whirlpool(its int, reqs map[string]Request, verbose bool, dest string, chai
 		count++
 	}
 	absStart := time.Now()
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+	}
 	successes := 0
 
 	for i := 0; i < its; i++ {
@@ -217,13 +234,23 @@ func Whirlpool(its int, reqs map[string]Request, verbose bool, dest string, chai
 				}
 				chain.Token = "Bearer " + tokenMap["token"]
 			}
-			// If the status code is 200 and verbose flag is enabled increment successes and output the json
+			var formattedJSON bytes.Buffer
+			body, _ := ioutil.ReadAll(resp.Body)
+			// If the status codes and bodies match increment successes
 			if code == req.SuccessCode {
-				successes++
+				if req.ExpectFile != "" {
+					if JSONEqual(body, req.ExpectedBody) {
+						successes++
+					} else {
+						log.Println("Response JSON body does NOT match expected JSON body")
+					}
+				} else {
+					successes++
+				}
+
 			}
+			// If verbose is enabled output json
 			if verbose {
-				var formattedJSON bytes.Buffer
-				body, _ := ioutil.ReadAll(resp.Body)
 				err := json.Indent(&formattedJSON, body, "", "    ")
 				if err != nil {
 					log.Fatalf("Error printing response body for %s\n", req)
@@ -247,6 +274,22 @@ func (r Request) String() string {
 		r.Method, r.Endpoint)
 }
 
+// JSONEqual compares two slices of bytes
+func JSONEqual(a, b []byte) bool {
+	var j, j2 interface{}
+	if err := json.Unmarshal(a, &j); err != nil {
+		fmt.Println("here")
+		fmt.Println(j)
+		return false
+	}
+	if err := json.Unmarshal(b, &j2); err != nil {
+		fmt.Println("there")
+		return false
+	}
+	return reflect.DeepEqual(j2, j)
+
+}
+
 // PrepareRequest returns http.Request structs
 func (r *Request) PrepareRequest(key KeyChain) (*http.Request, error) {
 	req, err := http.NewRequest(r.Method, r.Base+r.Endpoint, &r.Body)
@@ -267,6 +310,11 @@ func (r *Request) PrepareRequest(key KeyChain) (*http.Request, error) {
 
 // ReadJsonFile reads in JSON files for Create, Update, and Delete requests
 func ReadJsonFile(filepath string) *bytes.Buffer {
+	byteValue := JSONToByte(filepath)
+	return bytes.NewBuffer(byteValue)
+}
+
+func JSONToByte(filepath string) []byte {
 	jsonFile, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalf("Couldn't open json file at %s\n", filepath)
@@ -279,8 +327,7 @@ func ReadJsonFile(filepath string) *bytes.Buffer {
 	}(jsonFile)
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	return bytes.NewBuffer(byteValue)
+	return byteValue
 }
 
 // ReadCredentials returns a KeyChain struct from a yaml file
@@ -319,15 +366,17 @@ type KeyChain struct {
 	Token string `yaml:"token"`
 }
 type Request struct {
-	Method      string `yaml:"method"`
-	Base        string `yaml:"base"`
-	Endpoint    string `yaml:"endpoint"`
-	SuccessCode int    `yaml:"success-code"`
-	DataFile    string `yaml:"data-file"`
-	ContentType string `yaml:"content-type"`
-	IsAuth      bool   `yaml:"is-auth"`
-	RToken      bool   `yaml:"r-token"`
-	Body        bytes.Buffer
+	Method       string `yaml:"method"`
+	Base         string `yaml:"base"`
+	Endpoint     string `yaml:"endpoint"`
+	SuccessCode  int    `yaml:"success-code"`
+	DataFile     string `yaml:"data-file"`
+	ExpectFile   string `yaml:"expect-file"`
+	ContentType  string `yaml:"content-type"`
+	IsAuth       bool   `yaml:"is-auth"`
+	RToken       bool   `yaml:"r-token"`
+	Body         bytes.Buffer
+	ExpectedBody []byte
 }
 
 func (c *KeyChain) String() string {

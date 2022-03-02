@@ -1,15 +1,10 @@
 request-1:
-  method: "GET"
-  base: "https://api.sampleapis.com"
-  endpoint: "/coffee/hot"
-  success-code: 200
-
-request-2:
   method: "POST"
-  base: "https://postman-echo.com"
-  endpoint: "/post"
+  base: "https://reqbin.com/sample"
+  endpoint: "/post/json"
   success-code: 200
   data-file: "./data/post.json"
+  expect-file: "./data/expect-post.json"
   content-type: "application/json"
   is-auth: false
   r-token: false

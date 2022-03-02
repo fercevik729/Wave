@@ -26,7 +26,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "wave",
 	Short: "Wave is an automated RESTful API tester",
-	Long: `Wave is a command line application that provides multiple options to automatically test your RESTful API 
+	Long: `Wave is a command line application that provides options to automatically test your RESTful API 
 from the shell interface. It provides an option to concurrently load test your API as well as an option to cyclically test your API.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Welcome to wave")

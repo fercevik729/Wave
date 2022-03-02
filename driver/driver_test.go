@@ -10,14 +10,14 @@ import (
 )
 
 func TestWhirlpool(t *testing.T) {
-	reqs := make(map[string]Request, 0)
-	reqs["request-1"] = Request{
+	reqs := make(map[string]*Request, 0)
+	reqs["request-1"] = &Request{
 		Method:      "GET",
 		Base:        "https://api.sampleapis.com",
 		Endpoint:    "/coffee/hot",
 		SuccessCode: 200,
 	}
-	reqs["request-2"] = Request{
+	reqs["request-2"] = &Request{
 		Method:      "POST",
 		Base:        "https://postman-echo.com",
 		Endpoint:    "/post",
@@ -35,14 +35,14 @@ func TestWhirlpool(t *testing.T) {
 }
 
 func TestSplash(t *testing.T) {
-	reqs := make(map[string]Request, 0)
-	reqs["request-1"] = Request{
+	reqs := make(map[string]*Request, 0)
+	reqs["request-1"] = &Request{
 		Method:      "GET",
 		Base:        "https://api.sampleapis.com",
 		Endpoint:    "/coffee/hot",
 		SuccessCode: 200,
 	}
-	reqs["request-2"] = Request{
+	reqs["request-2"] = &Request{
 		Method:      "POST",
 		Base:        "https://postman-echo.com",
 		Endpoint:    "/post",
@@ -61,6 +61,7 @@ func TestSplash(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	// TODO: Update test
 	actualReqs, actChain := New("../requests/test-reqs.yaml", "../data/cred.yaml")
 	expectedReqs := make(map[string]Request, 0)
 	expectedChain := KeyChain{
