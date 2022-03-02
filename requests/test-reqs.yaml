@@ -9,8 +9,6 @@ request-2:
   base: "https://postman-echo.com"
   endpoint: "/post"
   success-code: 200
-  data-file: "../data/post.json"
   content-type: "application/json"
-  is-auth: false
-  r-token: false
+
 

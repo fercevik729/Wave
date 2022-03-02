@@ -63,28 +63,25 @@ func TestSplash(t *testing.T) {
 func TestNew(t *testing.T) {
 	// TODO: Update test
 	actualReqs, actChain := New("../requests/test-reqs.yaml", "../data/cred.yaml")
-	expectedReqs := make(map[string]Request, 0)
+	expectedReqs := make(map[string]*Request, 0)
 	expectedChain := KeyChain{
 		User:  "developer45@gmail.com",
 		Pass:  "password1234",
 		Token: "Bearer xxxxxxxxxxxxxxxxxxxxxxxx",
 	}
 
-	expectedReqs["request-1"] = Request{
+	expectedReqs["request-1"] = &Request{
 		Method:      "GET",
 		Base:        "https://api.sampleapis.com",
 		Endpoint:    "/coffee/hot",
 		SuccessCode: 200,
 	}
-	expectedReqs["request-2"] = Request{
+	expectedReqs["request-2"] = &Request{
 		Method:      "POST",
 		Base:        "https://postman-echo.com",
 		Endpoint:    "/post",
 		SuccessCode: 200,
-		DataFile:    "../data/post.json",
 		ContentType: "application/json",
-		IsAuth:      false,
-		RToken:      false,
 	}
 
 	if !reflect.DeepEqual(actualReqs, expectedReqs) {
