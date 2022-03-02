@@ -27,7 +27,7 @@ func TestWhirlpool(t *testing.T) {
 		IsAuth:      false,
 		RToken:      false,
 	}
-	actual := Whirlpool(10, reqs, false, "", KeyChain{})
+	actual := Whirlpool(10, reqs, false, "", &KeyChain{})
 	expected := 20
 	if actual != expected {
 		t.Errorf("Expected %d successes, but got %d successes\n", expected, actual)
@@ -53,7 +53,7 @@ func TestSplash(t *testing.T) {
 		RToken:      false,
 	}
 
-	actual := Splash(10, reqs, true, "", KeyChain{})
+	actual := Splash(10, reqs, true, "", &KeyChain{})
 	expected := 20
 	if actual != expected {
 		t.Errorf("Expected %d successes, but got %d successes\n", actual, expected)
@@ -61,10 +61,9 @@ func TestSplash(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	// TODO: Update test
 	actualReqs, actChain := New("../requests/test-reqs.yaml", "../data/cred.yaml")
 	expectedReqs := make(map[string]*Request, 0)
-	expectedChain := KeyChain{
+	expectedChain := &KeyChain{
 		User:  "developer45@gmail.com",
 		Pass:  "password1234",
 		Token: "Bearer xxxxxxxxxxxxxxxxxxxxxxxx",
@@ -87,7 +86,7 @@ func TestNew(t *testing.T) {
 	if !reflect.DeepEqual(actualReqs, expectedReqs) {
 		t.Errorf("Requests: expected %v, but got %v", expectedReqs, actualReqs)
 	}
-	if actChain != expectedChain {
+	if *actChain != *expectedChain {
 		t.Errorf("Keychain: expected %v, but got %v", expectedChain, actChain)
 	}
 }

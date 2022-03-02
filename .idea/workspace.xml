@@ -6,8 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="8f06ce30-7b27-4937-a656-7dfa97699772" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/init.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/init.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/splash.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/splash.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/whirl.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/whirl.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/driver/driver.go" beforeDir="false" afterPath="$PROJECT_DIR$/driver/driver.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/driver/driver_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/driver/driver_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requests/test-reqs.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/requests/test-reqs.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,7 +69,7 @@
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
-  <component name="RunManager" selected="Go Test.driver_test.go">
+  <component name="RunManager" selected="Go Test.driver_test.go (1)">
     <configuration name="go build main" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/" />
@@ -75,16 +78,6 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <output_directory value="github.com/fercevik729/Wave/main.go" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="Wave" />
-      <working_directory value="$PROJECT_DIR$" />
-      <parameters value="splash -v -i 2" />
-      <kind value="FILE" />
-      <package value="github.com/fercevik729/Wave" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/main.go" />
       <method v="2" />
     </configuration>
     <configuration name="TestNew in github.com/fercevik729/Wave/driver (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -123,6 +116,17 @@
       <pattern value="^\QTestWhirlpool\E$" />
       <method v="2" />
     </configuration>
+    <configuration name="driver_test.go (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="Wave" />
+      <working_directory value="$PROJECT_DIR$/driver" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="FILE" />
+      <package value="github.com/fercevik729/Wave" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/driver/driver_test.go" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
     <configuration name="driver_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
@@ -136,19 +140,19 @@
     </configuration>
     <list>
       <item itemvalue="Go Build.go build main" />
-      <item itemvalue="Go Build.go build main.go" />
       <item itemvalue="Go Test.TestWhirlpool in github.com/fercevik729/Wave/driver (1)" />
       <item itemvalue="Go Test.TestSplash in github.com/fercevik729/Wave/driver" />
       <item itemvalue="Go Test.TestNew in github.com/fercevik729/Wave/driver (1)" />
       <item itemvalue="Go Test.driver_test.go" />
+      <item itemvalue="Go Test.driver_test.go (1)" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.driver_test.go (1)" />
         <item itemvalue="Go Test.driver_test.go" />
         <item itemvalue="Go Test.TestNew in github.com/fercevik729/Wave/driver (1)" />
         <item itemvalue="Go Test.TestSplash in github.com/fercevik729/Wave/driver" />
         <item itemvalue="Go Test.TestWhirlpool in github.com/fercevik729/Wave/driver (1)" />
-        <item itemvalue="Go Build.go build main.go" />
       </list>
     </recent_temporary>
   </component>
@@ -185,7 +189,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/driver/driver_test.go</url>
-          <line>86</line>
+          <line>85</line>
           <option name="timeStamp" value="13" />
         </line-breakpoint>
       </breakpoints>

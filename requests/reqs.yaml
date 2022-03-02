@@ -9,3 +9,8 @@ request-1:
   is-auth: false
   r-token: false
 
+request-2:
+  method: "GET"
+  base: "https://api.sampleapis.com"
+  endpoint: "/coffee/hot"
+  success-code: 200

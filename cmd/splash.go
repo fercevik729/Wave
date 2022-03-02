@@ -24,10 +24,4 @@ var splashCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(splashCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// splashCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

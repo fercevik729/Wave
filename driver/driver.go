@@ -18,8 +18,59 @@ import (
 	"time"
 )
 
+// safeCounter is used to count the number of successful requests from concurrent calls to RESTful API endpoints
+type safeCounter struct {
+	sync.Mutex
+	counter int
+}
+
+// KeyChain is used to store API credentials that can be referred to by requests in the requests YAML file
+type KeyChain struct {
+	User  string `yaml:"user"`
+	Pass  string `yaml:"pass"`
+	Token string `yaml:"token"`
+}
+
+// Request is a struct that contains many fields from the net/http Request struct but also some more:
+// SuccessCode: expected status code for the request after it has been called and processed by the API
+// DataFile: filepath to JSON file containing POST, PATCH, or DELETE data
+// ExpectFile: filepath to JSON file containing expected response body
+// IsAuth: specifies if the method is an authentication method
+// RToken: specifies if the method requires a token
+// TODO: add a delay and must contains fields
+// expectedBody: slice of bytes containing JSON from ExpectFile
+type Request struct {
+	Method       string `yaml:"method"`
+	Base         string `yaml:"base"`
+	Endpoint     string `yaml:"endpoint"`
+	SuccessCode  int    `yaml:"success-code"`
+	DataFile     string `yaml:"data-file"`
+	ExpectFile   string `yaml:"expect-file"`
+	ContentType  string `yaml:"content-type"`
+	IsAuth       bool   `yaml:"is-auth"`
+	RToken       bool   `yaml:"r-token"`
+	body         bytes.Buffer
+	expectedBody []byte
+}
+
+// setToken sets the token field to the parameter token
+func (c *KeyChain) setToken(token string) {
+	c.Token = "Bearer" + token
+}
+
+// String outputs Request details
+func (r Request) String() string {
+	return fmt.Sprintf("127.0.0.1 - - [%s] \"%s %s HTTP/1.0\"", time.Now().Format("2/Jan/2006:15:04:05 -0700"),
+		r.Method, r.Endpoint)
+}
+
+// String outputs KeyChain details
+func (c *KeyChain) String() string {
+	return fmt.Sprintf("Your username: %s, Your password: %s, Your token: %s", c.User, c.Pass, c.Token)
+}
+
 // New creates new Request structs and returns a Keychain struct
-func New(reqFile, authFile string) (map[string]*Request, KeyChain) {
+func New(reqFile, authFile string) (map[string]*Request, *KeyChain) {
 
 	// Open yaml file
 	f, err := os.Open(reqFile)
@@ -33,7 +84,7 @@ func New(reqFile, authFile string) (map[string]*Request, KeyChain) {
 		}
 	}(f)
 	// Get the credentials
-	credentials := ReadCredentials(authFile)
+	credentials := readCredentials(authFile)
 
 	// Unmarshal yaml data into a map of Request pointers
 	data, _ := ioutil.ReadAll(f)
@@ -46,11 +97,11 @@ func New(reqFile, authFile string) (map[string]*Request, KeyChain) {
 	// Set request bodies
 	for _, request := range reqs {
 		if request.DataFile != "" {
-			request.Body = *ReadJsonFile(request.DataFile)
+			request.body = *readJsonFile(request.DataFile)
 		}
 		// Set the expected body of the request
 		if request.ExpectFile != "" {
-			request.ExpectedBody = JSONToByte(request.ExpectFile)
+			request.expectedBody = jsonToByte(request.ExpectFile)
 		}
 	}
 	return reqs, credentials
@@ -58,7 +109,7 @@ func New(reqFile, authFile string) (map[string]*Request, KeyChain) {
 }
 
 // Splash runs the specified requests concurrently with the option to count how many requests had a status code of
-func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain KeyChain) int {
+func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain *KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	var out *os.File
@@ -78,6 +129,7 @@ func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain 
 		log.SetOutput(outFile)
 	}
 
+	// Start message
 	startMessage := fmt.Sprintf("Sending %d Request(s) for %d sets to", len(reqs), its)
 	count := 0
 	for _, request := range reqs {
@@ -88,9 +140,12 @@ func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain 
 		count++
 	}
 	log.Println(startMessage)
+
 	start := time.Now()
 	successes := safeCounter{}
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+	}
 	var wg sync.WaitGroup
 
 	// Run the requests for its sets and
@@ -105,7 +160,7 @@ func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain 
 					successes.Lock()
 					defer successes.Unlock()
 				}
-				r, err := req.PrepareRequest(chain)
+				r, err := req.prepareRequest(chain)
 				if err != nil {
 					log.Fatalf("Couldn't construct %s\n", req)
 				}
@@ -138,7 +193,7 @@ func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain 
 					}
 					log.Printf("Response body: %s\n", formattedJSON.String())
 					if req.ExpectFile != "" {
-						match := JSONEqual(req.ExpectedBody, body)
+						match := jsonEqual(req.expectedBody, body)
 						if match {
 							successes.counter++
 						} else {
@@ -164,7 +219,7 @@ func Splash(its int, reqs map[string]*Request, verbose bool, dest string, chain 
 }
 
 // Whirlpool runs the specified requests cyclically for a specified number of iterations
-func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, chain KeyChain) int {
+func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, chain *KeyChain) int {
 
 	// If a destination log file is specified set it as the output otherwise stick with stdout
 	var out *os.File
@@ -183,6 +238,7 @@ func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, cha
 
 		log.SetOutput(outFile)
 	}
+	// Start message
 	startMessage := fmt.Sprintf("Sending %d Request(s) for %d sets to", len(reqs), its)
 	count := 0
 	for _, request := range reqs {
@@ -201,7 +257,7 @@ func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, cha
 	for i := 0; i < its; i++ {
 		for _, req := range reqs {
 			// Get the prepared request
-			r, err := req.PrepareRequest(chain)
+			r, err := req.prepareRequest(chain)
 			if err != nil {
 				log.Fatalf("Couldn't construct %s\n", req)
 			}
@@ -232,14 +288,14 @@ func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, cha
 				if err != nil {
 					log.Fatal(err)
 				}
-				chain.Token = "Bearer " + tokenMap["token"]
+				chain.setToken(tokenMap["token"])
 			}
 			var formattedJSON bytes.Buffer
 			body, _ := ioutil.ReadAll(resp.Body)
 			// If the status codes and bodies match increment successes
 			if code == req.SuccessCode {
 				if req.ExpectFile != "" {
-					if JSONEqual(body, req.ExpectedBody) {
+					if jsonEqual(body, req.expectedBody) {
 						successes++
 					} else {
 						log.Println("Response JSON body does NOT match expected JSON body")
@@ -268,31 +324,9 @@ func Whirlpool(its int, reqs map[string]*Request, verbose bool, dest string, cha
 	return successes
 }
 
-// String outputs Request and YAMLRequest details
-func (r Request) String() string {
-	return fmt.Sprintf("127.0.0.1 - - [%s] \"%s %s HTTP/1.0\"", time.Now().Format("2/Jan/2006:15:04:05 -0700"),
-		r.Method, r.Endpoint)
-}
-
-// JSONEqual compares two slices of bytes
-func JSONEqual(a, b []byte) bool {
-	var j, j2 interface{}
-	if err := json.Unmarshal(a, &j); err != nil {
-		fmt.Println("here")
-		fmt.Println(j)
-		return false
-	}
-	if err := json.Unmarshal(b, &j2); err != nil {
-		fmt.Println("there")
-		return false
-	}
-	return reflect.DeepEqual(j2, j)
-
-}
-
-// PrepareRequest returns http.Request structs
-func (r *Request) PrepareRequest(key KeyChain) (*http.Request, error) {
-	req, err := http.NewRequest(r.Method, r.Base+r.Endpoint, &r.Body)
+// prepareRequest returns http.Request structs with authentication or authorization if needed
+func (r *Request) prepareRequest(key *KeyChain) (*http.Request, error) {
+	req, err := http.NewRequest(r.Method, r.Base+r.Endpoint, &r.body)
 	if err != nil {
 		return &http.Request{}, err
 	}
@@ -308,13 +342,30 @@ func (r *Request) PrepareRequest(key KeyChain) (*http.Request, error) {
 
 }
 
-// ReadJsonFile reads in JSON files for Create, Update, and Delete requests
-func ReadJsonFile(filepath string) *bytes.Buffer {
-	byteValue := JSONToByte(filepath)
+// jsonEqual compares two slices of JSONified bytes, returns true if they match, otherwise false
+func jsonEqual(a, b []byte) bool {
+	var j, j2 interface{}
+	if err := json.Unmarshal(a, &j); err != nil {
+		fmt.Println("here")
+		fmt.Println(j)
+		return false
+	}
+	if err := json.Unmarshal(b, &j2); err != nil {
+		fmt.Println("there")
+		return false
+	}
+	return reflect.DeepEqual(j2, j)
+
+}
+
+// readJsonFile reads in JSON files for Create, Update, and Delete requests
+func readJsonFile(filepath string) *bytes.Buffer {
+	byteValue := jsonToByte(filepath)
 	return bytes.NewBuffer(byteValue)
 }
 
-func JSONToByte(filepath string) []byte {
+// jsonToByte converts a JSON file to a slice of bytes
+func jsonToByte(filepath string) []byte {
 	jsonFile, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalf("Couldn't open json file at %s\n", filepath)
@@ -330,8 +381,8 @@ func JSONToByte(filepath string) []byte {
 	return byteValue
 }
 
-// ReadCredentials returns a KeyChain struct from a yaml file
-func ReadCredentials(filepath string) KeyChain {
+// readCredentials returns a KeyChain struct from a yaml file
+func readCredentials(filepath string) *KeyChain {
 
 	yamlFile, err := os.Open(filepath)
 	if err != nil {
@@ -352,33 +403,5 @@ func ReadCredentials(filepath string) KeyChain {
 		log.Fatalf("%v", err)
 	}
 
-	return keys
-}
-
-type safeCounter struct {
-	sync.Mutex
-	counter int
-}
-
-type KeyChain struct {
-	User  string `yaml:"user"`
-	Pass  string `yaml:"pass"`
-	Token string `yaml:"token"`
-}
-type Request struct {
-	Method       string `yaml:"method"`
-	Base         string `yaml:"base"`
-	Endpoint     string `yaml:"endpoint"`
-	SuccessCode  int    `yaml:"success-code"`
-	DataFile     string `yaml:"data-file"`
-	ExpectFile   string `yaml:"expect-file"`
-	ContentType  string `yaml:"content-type"`
-	IsAuth       bool   `yaml:"is-auth"`
-	RToken       bool   `yaml:"r-token"`
-	Body         bytes.Buffer
-	ExpectedBody []byte
-}
-
-func (c *KeyChain) String() string {
-	return fmt.Sprintf("Your username: %s, Your password: %s, Your token: %s", c.User, c.Pass, c.Token)
+	return &keys
 }
