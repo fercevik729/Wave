@@ -35,23 +35,25 @@ type KeyChain struct {
 }
 
 // Request is a struct that contains many fields from the net/http Request struct but also some more:
+// Base: represents base url of API
+// Endpoint: represents the endpoint of an API, utilizes {id} notation if an IdRange is specified
+// IdRange: specifies the id range of the request
 // SuccessCode: expected status code for the request after it has been called and processed by the API
 // DataFile: filepath to JSON file containing POST, PATCH, or DELETE data
 // ExpectFile: filepath to JSON file containing expected response body
 // IsAuth: specifies if the method is an authentication method
 // RToken: specifies if the method requires a token
-// TODO: fix ids so it works in the middle of the endpoint and not just at the end
 type Request struct {
-	Method       string `yaml:"method"`
-	Base         string `yaml:"base"`
-	Endpoint     string `yaml:"endpoint"`
-	IdRange      [2]int `yaml:"id-range"`
-	SuccessCode  int    `yaml:"success-code"`
-	DataFile     string `yaml:"data-file"`
-	ExpectFile   string `yaml:"expect-file"`
-	ContentType  string `yaml:"content-type"`
-	IsAuth       bool   `yaml:"is-auth"`
-	RToken       bool   `yaml:"r-token"`
+	Method       string   `yaml:"method"`
+	Base         string   `yaml:"base"`
+	Endpoint     string   `yaml:"endpoint"`
+	IdRange      []string `yaml:"id-range"`
+	SuccessCode  int      `yaml:"success-code"`
+	DataFile     string   `yaml:"data-file"`
+	ExpectFile   string   `yaml:"expect-file"`
+	ContentType  string   `yaml:"content-type"`
+	IsAuth       bool     `yaml:"is-auth"`
+	RToken       bool     `yaml:"r-token"`
 	body         bytes.Buffer
 	expectedBody []byte
 }
@@ -94,11 +96,12 @@ func New(reqFile, authFile string) ([]*Request, *KeyChain) {
 	var reqs map[string]*Request
 	err = yaml.Unmarshal(data, &reqs)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Check the fields in your YAML requests file: %e", err)
 	}
 
 	// Set request bodies
 	for _, request := range reqs {
+		request.Method = strings.ToUpper(request.Method)
 		if request.DataFile != "" {
 			request.body = *readJsonFile(request.DataFile)
 		}
@@ -112,7 +115,7 @@ func New(reqFile, authFile string) ([]*Request, *KeyChain) {
 	finalReqs := make([]*Request, 0)
 	for _, request := range reqs {
 		// If the request has an id range unpack the request and append it to the final slice
-		if request.IdRange != [2]int{} {
+		if request.IdRange != nil {
 			newReqs, err := request.unpackRequests()
 			if err != nil {
 				log.Fatalf("Improper id range bounds: %e\n", err)
@@ -289,8 +292,8 @@ func Whirlpool(its int, reqs []*Request, verbose bool, dest string, chain *KeyCh
 
 			// Get start time and run the request
 			reqStart := time.Now()
-			resp, err := client.Do(r)
-			if err != nil {
+			resp, e := client.Do(r)
+			if e != nil {
 				log.Fatalf("%s timed out\n", req)
 			}
 			// Log using common log format
@@ -367,16 +370,37 @@ func (r *Request) prepareRequest(key *KeyChain) (*http.Request, error) {
 
 }
 
-// unpackRequests returns a slice of *Request structs for a given Request struct with an id range
+// unpackRequests returns a slice of *Request structs for a given Request struct with an IdRange
 func (r *Request) unpackRequests() ([]*Request, error) {
 	finalRequests := make([]*Request, 0)
 
+	// If the ids aren't numbers or IdRange is greater than 2, iterate over them normally
+	upper, err := strconv.Atoi(r.IdRange[1])
+	lower, e := strconv.Atoi(r.IdRange[0])
+	if err != nil || e != nil || len(r.IdRange) > 2 {
+		for _, id := range r.IdRange {
+			// Create the new endpoint
+			newEndpoint := strings.ReplaceAll(r.Endpoint, "{id}", id)
+			newReq := &Request{}
+			err := copier.Copy(&newReq, r)
+			if err != nil {
+				return nil, err
+			}
+			// Set the endpoint and clear the other fields
+			newReq.Endpoint = newEndpoint
+			newReq.IdRange = nil
+
+			finalRequests = append(finalRequests, newReq)
+		}
+
+		return finalRequests, nil
+	}
 	// Improper bounds
-	if !(r.IdRange[1] > r.IdRange[0]) {
+	if !(upper > lower) {
 		var err error
 		return nil, err
 	}
-	for i := r.IdRange[0]; i <= r.IdRange[1]; i++ {
+	for i := lower; i <= upper; i++ {
 		// Create the new endpoint
 		newEndpoint := strings.ReplaceAll(r.Endpoint, "{id}", strconv.Itoa(i))
 		newReq := &Request{}
@@ -386,7 +410,7 @@ func (r *Request) unpackRequests() ([]*Request, error) {
 		}
 		// Set the endpoint and clear the other fields
 		newReq.Endpoint = newEndpoint
-		newReq.IdRange = [2]int{}
+		newReq.IdRange = nil
 
 		finalRequests = append(finalRequests, newReq)
 	}

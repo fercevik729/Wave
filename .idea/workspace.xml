@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="8f06ce30-7b27-4937-a656-7dfa97699772" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/driver/driver.go" beforeDir="false" afterPath="$PROJECT_DIR$/driver/driver.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requests/reqs.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/requests/reqs.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
