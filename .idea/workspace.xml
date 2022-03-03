@@ -67,7 +67,7 @@
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
-  <component name="RunManager" selected="Go Test.TestNew in github.com/fercevik729/Wave/driver">
+  <component name="RunManager" selected="Go Test.driver_test.go (2)">
     <configuration name="go build main" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/" />
@@ -102,19 +102,18 @@
       <pattern value="^\QTestNew\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestSplash in github.com/fercevik729/Wave/driver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="driver_test.go (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/fercevik729/Wave/driver" />
+      <kind value="FILE" />
+      <package value="github.com/fercevik729/Wave" />
       <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/driver/driver_test.go" />
       <framework value="gotest" />
-      <pattern value="^\QTestSplash\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="driver_test.go (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="driver_test.go (2)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Wave" />
       <working_directory value="$PROJECT_DIR$/driver" />
       <root_directory value="$PROJECT_DIR$" />
@@ -138,19 +137,19 @@
     </configuration>
     <list>
       <item itemvalue="Go Build.go build main" />
-      <item itemvalue="Go Test.TestSplash in github.com/fercevik729/Wave/driver" />
       <item itemvalue="Go Test.TestNew in github.com/fercevik729/Wave/driver (1)" />
       <item itemvalue="Go Test.driver_test.go" />
       <item itemvalue="Go Test.driver_test.go (1)" />
       <item itemvalue="Go Test.TestNew in github.com/fercevik729/Wave/driver" />
+      <item itemvalue="Go Test.driver_test.go (2)" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.driver_test.go (2)" />
         <item itemvalue="Go Test.TestNew in github.com/fercevik729/Wave/driver" />
         <item itemvalue="Go Test.driver_test.go (1)" />
         <item itemvalue="Go Test.driver_test.go" />
         <item itemvalue="Go Test.TestNew in github.com/fercevik729/Wave/driver (1)" />
-        <item itemvalue="Go Test.TestSplash in github.com/fercevik729/Wave/driver" />
       </list>
     </recent_temporary>
   </component>
