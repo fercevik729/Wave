@@ -5,10 +5,14 @@ request-1:
   success-code: 200
 
 request-2:
-  method: "POST"
-  base: "https://postman-echo.com"
-  endpoint: "/post"
+  method: "GET"
+  base: "https://jsonplaceholder.typicode.com"
+  endpoint: "/photos/{id}"
   success-code: 200
-  content-type: "application/json"
+  id-range:
+    - 1
+    - 10
+    - 99
+    - 33
 
 
