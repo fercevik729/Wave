@@ -78,6 +78,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## Future ideas
 * Enable the creation of test-suites in YAML
 * Enable encrypting data files
+* Create a docker image
 
 ## License
 © Furkan T. Ercevik
