@@ -29,7 +29,7 @@ func Encrypt(filepath string, key string) error {
 		return &KeyError{}
 	}
 	// Read file contents
-	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	f, err := os.Open(filepath)
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
@@ -39,7 +39,7 @@ func Encrypt(filepath string, key string) error {
 	if err != nil {
 		return err
 	}
-	weakText, err := ioutil.ReadAll(f)
+	weakText, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func Decrypt(filepath string, key string) error {
 		return &KeyError{}
 	}
 	// Read file contents
-	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	f, err := os.Open(filepath)
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
@@ -91,7 +91,7 @@ func Decrypt(filepath string, key string) error {
 	if err != nil {
 		return err
 	}
-	strongText, err := ioutil.ReadAll(f)
+	strongText, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return err
 	}
