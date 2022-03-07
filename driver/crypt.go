@@ -8,10 +8,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 type KeyError struct{}
@@ -40,6 +42,11 @@ func Encrypt(filepath string, key string) error {
 		return err
 	}
 	weakText, err := ioutil.ReadFile(filepath)
+	weakTextStr := string(weakText)
+	if !strings.Contains(weakTextStr, "user") || !strings.Contains(weakTextStr, "pass") || !strings.Contains(weakTextStr, "token") {
+		fmt.Println("Credentials file is already encrypted. Exiting...")
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -118,7 +125,6 @@ func Decrypt(filepath string, key string) error {
 	if err != nil {
 		return err
 	}
-	// TODO: Add error checking and reverting to original crypto hash if passphrase isn't correct
 	// Output the text
 	err = ioutil.WriteFile(filepath, weakText, 0777)
 	if err != nil {
