@@ -18,6 +18,12 @@ go install Wave
 # To check that you correctly installed Wave
 wave --version
 
+# To encrypt the credentials file use a 16 character long password
+wave protect -e -p "mysecretpassword"
+
+# To decrypt the credentials file use the same 16 character long password
+wave protect -p "mysecretpassword"
+
 # To initialize empty setup files and directories
 wave init
 

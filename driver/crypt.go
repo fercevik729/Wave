@@ -118,6 +118,7 @@ func Decrypt(filepath string, key string) error {
 	if err != nil {
 		return err
 	}
+	// TODO: Add error checking and reverting to original crypto hash if passphrase isn't correct
 	// Output the text
 	err = ioutil.WriteFile(filepath, weakText, 0777)
 	if err != nil {
