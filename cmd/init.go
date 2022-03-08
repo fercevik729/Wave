@@ -27,8 +27,7 @@ var initCmd = &cobra.Command{
 		createBlankFile := func(name string) error {
 			// If file doesn't exist make it
 			if _, err := os.Stat(name); errors.Is(err, os.ErrNotExist) {
-				d := []byte("")
-				err = os.WriteFile(name, d, 0644)
+				_, err := os.Create(name)
 				return err
 			}
 			return nil

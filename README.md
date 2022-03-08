@@ -1,8 +1,8 @@
-# Wave
+# Wave 🌊 
 
 Wave is a command line application built using the Cobra CLI framework to load-test RESTful APIs.
 
-## Installation
+## Installation 🛠️
 
 ```bash
 # To get the package
@@ -12,7 +12,7 @@ go get github.com/fercevik729/Wave
 go install Wave
 ```
 
-## Usage
+## Usage ⌨️
 
 ```bash
 # To check that you correctly installed Wave
@@ -57,7 +57,7 @@ wave splash -r "./reqs/first-api-requests.yaml"
 # Flags can also be combined
 wave splash -r "./requests/first-http.yaml" -i 15 -v -o "first.log"
 ```
-## Writing Requests in YAML
+## Writing Requests in YAML ✍️
 In order for Wave to properly unmarshal the request data into its corresponding structs, users should try to follow the 
 following convention: 
 
@@ -84,13 +84,20 @@ in the response body for later requests. It will use the username and password f
 Note that it is fine to omit some fields but the program won't work if the "method", "base", "endpoint", and
 "success-code" are not filled. It is also fine if the user decides to put some fields out of order.
 
+## Dockerizing Wave 🐳🌊
+```bash
+# Build the wave image 
+docker build . --tag wave
+
+# Run the container in interactive mode
+docker run --name tester-1 -i -t wave
+
+```
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-## Future ideas
-* Enable the creation of test-suites in YAML
-* Enable encrypting data files
-* Create a docker image
+## Future Plans
+* Create a web app to host Wave as an online service
 
 ## License
 © Furkan T. Ercevik
